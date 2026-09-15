@@ -84,7 +84,6 @@ export default function ProjectsPage() {
       });
       setCreateOpen(false);
       showToast('Project created', 'success');
-      // Go to page 1 so the new project is visible.
       if (page === 1) {
         fetchProjects(1);
       } else {
@@ -131,7 +130,6 @@ export default function ProjectsPage() {
       await apiFetch(`/projects/${deleteId}`, { method: 'DELETE' });
       setDeleteId(null);
       showToast('Project deleted', 'success');
-      // If last item on current page, go back.
       const newTotal = total - 1;
       const newPages = Math.max(1, Math.ceil(newTotal / PAGE_SIZE));
       const nextPage = Math.min(page, newPages);
@@ -190,7 +188,6 @@ export default function ProjectsPage() {
             ))}
           </div>
         ) : projects.length === 0 ? (
-          /* Empty state */
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>
               <LayoutGrid size={40} strokeWidth={1.5} />

@@ -62,7 +62,6 @@
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ── Dark Mode ──────────────────────────────────────────────── */
 [data-theme='dark'] {
   --primary: #ff5261;
   --primary-dark: #e23744;

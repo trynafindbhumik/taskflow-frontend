@@ -25,7 +25,6 @@
   animation: scaleIn 0.2s var(--ease-out) both;
 }
 
-/* Input row */
 .inputRow {
   display: flex;
   align-items: center;
@@ -89,7 +88,6 @@
   background-color: var(--muted);
 }
 
-/* Results body */
 .body {
   flex: 1;
   overflow-y: auto;
@@ -135,7 +133,6 @@
   font-size: 0.8125rem;
 }
 
-/* Sections */
 .section {
   padding: 0.5rem 0;
 }
@@ -152,7 +149,6 @@
   padding: 0.375rem 1.125rem;
 }
 
-/* Recent */
 .recentItem {
   display: flex;
   align-items: center;
@@ -176,7 +172,6 @@
   flex-shrink: 0;
 }
 
-/* Result items */
 .resultItem {
   display: flex;
   align-items: center;
@@ -198,7 +193,6 @@
   transform: translateX(0);
 }
 
-/* Project result */
 .resultIcon {
   width: 32px;
   height: 32px;
@@ -236,7 +230,6 @@
   text-overflow: ellipsis;
 }
 
-/* Task result */
 .taskMeta {
   display: flex;
   align-items: center;
@@ -302,7 +295,6 @@
     transform 0.15s ease;
 }
 
-/* Footer */
 .footer {
   display: flex;
   align-items: center;

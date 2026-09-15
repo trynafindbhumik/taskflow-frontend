@@ -4,6 +4,7 @@ import { Folder, Calendar, ArrowRight, MoreVertical, Pencil, Trash2 } from 'luci
 import Link from 'next/link';
 import React, { useState, useRef, useEffect } from 'react';
 
+import { auth } from '@/utils/auth';
 import type { Project } from '@/utils/types';
 
 import styles from './ProjectCard.module.css';
@@ -26,6 +27,8 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const currentUser = auth.getUser();
+  const isOwner = currentUser?.id === owner_id;
 
   const date = new Date(created_at).toLocaleDateString('en-US', {
     month: 'short',
@@ -33,7 +36,6 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
     year: 'numeric',
   });
 
-  // Close context menu on outside click.
   useEffect(() => {
     if (!menuOpen) return undefined;
 
@@ -63,48 +65,50 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
           <Folder size={20} strokeWidth={1.75} />
         </div>
 
-        <div className={styles.menuWrapper} ref={menuRef}>
-          <button
-            className={styles.menuBtn}
-            onClick={stopAndDo(() => setMenuOpen((o) => !o))}
-            aria-label="Project options"
-            aria-expanded={menuOpen}
-            aria-haspopup="menu"
-          >
-            <MoreVertical size={16} />
-          </button>
+        {isOwner && (
+          <div className={styles.menuWrapper} ref={menuRef}>
+            <button
+              className={styles.menuBtn}
+              onClick={stopAndDo(() => setMenuOpen((o) => !o))}
+              aria-label="Project options"
+              aria-expanded={menuOpen}
+              aria-haspopup="menu"
+            >
+              <MoreVertical size={16} />
+            </button>
 
-          {menuOpen && (
-            <div className={styles.contextMenu} role="menu">
-              {onEdit && (
-                <button
-                  className={styles.contextItem}
-                  onClick={stopAndDo(() => {
-                    setMenuOpen(false);
-                    onEdit({ id, name, description, owner_id, created_at });
-                  })}
-                  role="menuitem"
-                >
-                  <Pencil size={13} />
-                  <span>Edit project</span>
-                </button>
-              )}
-              {onDelete && (
-                <button
-                  className={`${styles.contextItem} ${styles.contextItemDanger}`}
-                  onClick={stopAndDo(() => {
-                    setMenuOpen(false);
-                    onDelete(id);
-                  })}
-                  role="menuitem"
-                >
-                  <Trash2 size={13} />
-                  <span>Delete project</span>
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+            {menuOpen && (
+              <div className={styles.contextMenu} role="menu">
+                {onEdit && (
+                  <button
+                    className={styles.contextItem}
+                    onClick={stopAndDo(() => {
+                      setMenuOpen(false);
+                      onEdit({ id, name, description, owner_id, created_at });
+                    })}
+                    role="menuitem"
+                  >
+                    <Pencil size={13} />
+                    <span>Edit project</span>
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    className={`${styles.contextItem} ${styles.contextItemDanger}`}
+                    onClick={stopAndDo(() => {
+                      setMenuOpen(false);
+                      onDelete(id);
+                    })}
+                    role="menuitem"
+                  >
+                    <Trash2 size={13} />
+                    <span>Delete project</span>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div className={styles.content}>

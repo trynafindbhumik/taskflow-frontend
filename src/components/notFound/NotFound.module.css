@@ -71,7 +71,6 @@
   font-feature-settings: 'tnum';
 }
 
-/* The zero is a styled icon box instead of a numeral */
 .zeroWrapper {
   width: clamp(5rem, 14vw, 8rem);
   height: clamp(5rem, 14vw, 8rem);

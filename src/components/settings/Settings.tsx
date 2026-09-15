@@ -13,15 +13,12 @@ export default function SettingsComponent() {
   const { theme, toggleTheme } = useTheme();
   const { showToast } = useToast();
 
-  // Load persisted preferences on mount.
   const [notifications, setNotifications] = useState(() => preferences.getNotifications());
-
   const [defaultView, setDefaultView] = useState<DefaultView>(() => preferences.getDefaultView());
 
   const handleSave = () => {
     preferences.setDefaultView(defaultView);
     preferences.setNotifications(notifications);
-    // Broadcast so other open tabs / components pick it up.
     window.dispatchEvent(
       new CustomEvent('tf:preferences-saved', { detail: { defaultView, notifications } })
     );
@@ -37,7 +34,6 @@ export default function SettingsComponent() {
         </div>
 
         <div className={styles.sections}>
-          {/* Appearance */}
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>Appearance</h2>
             <div className={styles.settingRow}>
@@ -68,7 +64,6 @@ export default function SettingsComponent() {
             </div>
           </section>
 
-          {/* Notifications */}
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>Notifications</h2>
             <div className={styles.settingRow}>
@@ -93,7 +88,6 @@ export default function SettingsComponent() {
             </div>
           </section>
 
-          {/* Preferences */}
           <section className={styles.section}>
             <h2 className={styles.sectionTitle}>Preferences</h2>
             <div className={styles.settingRow}>
@@ -126,7 +120,6 @@ export default function SettingsComponent() {
             </div>
           </section>
 
-          {/* Save */}
           <div className={styles.saveRow}>
             <p className={styles.saveHint}>
               Theme changes are instant. Other preferences require saving.

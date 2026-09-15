@@ -24,7 +24,6 @@ export const Modal: React.FC<ModalProps> = ({
 }) => {
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  // Close on Escape key
   useEffect(() => {
     if (!isOpen) return undefined;
 
@@ -39,7 +38,6 @@ export const Modal: React.FC<ModalProps> = ({
     };
   }, [isOpen, onClose]);
 
-  // Trap focus and lock body scroll
   useEffect(() => {
     if (!isOpen) return undefined;
 

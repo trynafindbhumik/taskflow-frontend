@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 
-import { MSWProvider } from '@/components/providers/mswProvider/MswProvider';
 import { ThemeProvider } from '@/components/providers/themeProvider/ThemeProvider';
 import { ToastProvider } from '@/components/ui/toast/ToastContext';
 
@@ -43,16 +42,14 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      {/* Blocking script — must run before any CSS is applied */}
+      {/* Inline theme script to prevent FOUC on initial page render */}
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="min-h-full flex flex-col">
-        <MSWProvider>
-          <ThemeProvider>
-            <ToastProvider>{children}</ToastProvider>
-          </ThemeProvider>
-        </MSWProvider>
+        <ThemeProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

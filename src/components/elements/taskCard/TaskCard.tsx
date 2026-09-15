@@ -15,18 +15,22 @@ import {
   Square,
   ChevronDown,
   ChevronUp,
+  Eye,
 } from 'lucide-react';
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
+import { auth } from '@/utils/auth';
 import type { Task, TaskStatus, User as UserType } from '@/utils/types';
 
 import styles from './TaskCard.module.css';
 
 interface TaskCardProps extends Task {
   members?: UserType[];
+  projectOwnerId?: string;
   onStatusChange?: (id: string, status: TaskStatus) => void;
   onSubtaskToggle?: (taskId: string, subtaskId: string, completed: boolean) => void;
+  onViewDetails?: (task: Task) => void;
   onEdit?: (task: Task) => void;
   onDelete?: (id: string) => void;
   onDragStart?: (e: React.DragEvent, id: string) => void;
@@ -63,14 +67,17 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   status,
   priority,
   assignee_id,
+  creator_id,
   due_date,
   subtasks,
   project_id,
   created_at,
   updated_at,
   members = [],
+  projectOwnerId,
   onStatusChange,
   onSubtaskToggle,
+  onViewDetails,
   onEdit,
   onDelete,
   onDragStart,
@@ -85,7 +92,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const menuBtnRef = useRef<HTMLButtonElement>(null);
   const contextMenuRef = useRef<HTMLDivElement>(null);
 
-  // Close the portaled menu on outside click.
+  const currentUser = auth.getUser();
+  const canDeleteTask =
+    !!onDelete &&
+    (currentUser?.id === creator_id || currentUser?.id === projectOwnerId || !creator_id);
+
   useEffect(() => {
     if (!menuOpen) return undefined;
 
@@ -100,7 +111,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     return () => document.removeEventListener('mousedown', handle);
   }, [menuOpen]);
 
-  // Close on scroll so the fixed menu doesn't drift from its trigger.
   useEffect(() => {
     if (!menuOpen) return undefined;
 
@@ -119,6 +129,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     e.dataTransfer.setData('taskId', id);
     e.dataTransfer.setData('taskStatus', status);
     e.dataTransfer.effectAllowed = 'move';
+    e.stopPropagation();
     onDragStart?.(e, id);
   };
 
@@ -157,6 +168,29 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     setMenuOpen(true);
   };
 
+  const handleViewDetails = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setMenuOpen(false);
+    setMenuPos(null);
+    onViewDetails?.({
+      id,
+      title,
+      description,
+      status,
+      priority,
+      assignee_id,
+      creator_id,
+      due_date,
+      subtasks,
+      project_id,
+      created_at,
+      updated_at,
+    });
+  };
+
   const handleEdit = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -169,6 +203,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       status,
       priority,
       assignee_id,
+      creator_id,
       due_date,
       subtasks,
       project_id,
@@ -218,6 +253,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       onDragOver={handleDragOver}
       onDrop={handleDrop}
       data-status={status}
+      onClick={handleViewDetails}
     >
       <div className={styles.dragHandle} aria-hidden>
         <GripVertical size={14} />
@@ -229,28 +265,27 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             className={`${styles.statusBtn} ${styles[`status_${status}`]}`}
             onClick={handleStatusClick}
             aria-label={`Mark as ${STATUS_CYCLE[status].replace('_', ' ')}`}
-            title={`Mark as ${STATUS_CYCLE[status].replace('_', ' ')}`}
+            title={`Status: ${status.replace('_', ' ')}. Click to advance.`}
           >
             {STATUS_ICONS[status]}
           </button>
-          <p className={`${styles.title} ${status === 'done' ? styles.titleDone : ''}`}>{title}</p>
+          <span className={`${styles.title} ${status === 'done' ? styles.titleDone : ''}`}>
+            {title}
+          </span>
         </div>
 
         {description && <p className={styles.description}>{description}</p>}
 
         {showSubtasks && subtasks && subtasks.length > 0 && (
-          <div className={styles.cardSubtaskList} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.subtaskChecklist}>
             {subtasks.map((st) => (
               <div
                 key={st.id}
                 className={styles.cardSubtaskRow}
                 onClick={(e) => {
-                  e.preventDefault();
                   e.stopPropagation();
                   onSubtaskToggle?.(id, st.id, !st.completed);
                 }}
-                role="button"
-                tabIndex={0}
               >
                 <span className={styles.cardSubtaskCheck}>
                   {st.completed ? (
@@ -341,13 +376,19 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             style={{ position: 'fixed', top: menuPos.top, right: menuPos.right }}
             role="menu"
           >
+            {onViewDetails && (
+              <button className={styles.contextItem} onClick={handleViewDetails} role="menuitem">
+                <Eye size={12} />
+                <span>View details</span>
+              </button>
+            )}
             {onEdit && (
               <button className={styles.contextItem} onClick={handleEdit} role="menuitem">
                 <Pencil size={12} />
                 <span>Edit task</span>
               </button>
             )}
-            {onDelete && (
+            {canDeleteTask && (
               <button
                 className={`${styles.contextItem} ${styles.contextItemDanger}`}
                 onClick={handleDelete}

@@ -43,7 +43,6 @@ export const Select: React.FC<SelectProps> = ({
     const viewportHeight = window.innerHeight;
     const viewportWidth = window.innerWidth;
 
-    // Estimate height based on options (with padding)
     const estimatedHeight = Math.min(options.length * 42 + 20, 280);
     const width = Math.max(rect.width, 200);
 
@@ -54,20 +53,16 @@ export const Select: React.FC<SelectProps> = ({
     const spaceAbove = rect.top - 16;
 
     if (spaceBelow >= estimatedHeight) {
-      // Enough space below → open downward (default)
       top = rect.bottom + 8;
       transformOriginY = 'top';
     } else if (spaceAbove >= estimatedHeight) {
-      // Not enough below but enough above → flip upward
       top = rect.top - estimatedHeight - 8;
       transformOriginY = 'bottom';
     } else {
-      // Very tight space → open downward and let it scroll internally
       top = rect.bottom + 8;
       transformOriginY = 'top';
     }
 
-    // Horizontal safe positioning
     let left = rect.left;
     if (left + width > viewportWidth - 12) {
       left = viewportWidth - width - 12;
@@ -93,7 +88,6 @@ export const Select: React.FC<SelectProps> = ({
     calculatePosition();
   };
 
-  // Close on outside click, scroll, or resize
   useEffect(() => {
     if (!open) return undefined;
 

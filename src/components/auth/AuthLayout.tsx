@@ -30,7 +30,12 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
           {children}
         </div>
 
-        <button className={styles.themeToggle} onClick={toggleTheme} aria-label="Toggle theme">
+        <button
+          className={styles.themeToggle}
+          onClick={toggleTheme}
+          aria-label="Toggle theme"
+          suppressHydrationWarning
+        >
           {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
         </button>
       </div>

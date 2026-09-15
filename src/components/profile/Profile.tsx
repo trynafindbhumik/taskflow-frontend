@@ -1,7 +1,7 @@
 'use client';
 
 import { User, Mail, Lock, Save, Eye, EyeOff, ChevronDown, ChevronUp } from 'lucide-react';
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import { Button } from '@/components/ui/button/Button';
 import { useToast } from '@/components/ui/toast/ToastContext';
@@ -40,15 +40,20 @@ export default function ProfileComponent() {
   const [isSaving, setIsSaving] = useState(false);
   const [savedName, setSavedName] = useState(currentUser?.name ?? '');
 
-  const savedColor =
-    typeof window !== 'undefined'
-      ? (localStorage.getItem('tf-avatar-color') ?? AVATAR_COLOURS[0])
-      : AVATAR_COLOURS[0];
-  const [avatarColor, setAvatarColor] = useState(savedColor);
+  const [avatarColor, setAvatarColor] = useState(AVATAR_COLOURS[0]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('tf-avatar-color');
+    if (saved && AVATAR_COLOURS.includes(saved)) {
+      setAvatarColor(saved);
+    }
+  }, []);
 
   const [pwdExpanded, setPwdExpanded] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [pwdError, setPwdError] = useState('');
@@ -64,6 +69,10 @@ export default function ProfileComponent() {
     }
 
     if (pwdExpanded) {
+      if (!currentPassword) {
+        setPwdError('Current password is required to set a new password');
+        return;
+      }
       if (newPassword.length < 6) {
         setPwdError('New password must be at least 6 characters');
         return;
@@ -81,6 +90,7 @@ export default function ProfileComponent() {
       const payload: Record<string, string> = { name: name.trim() };
 
       if (pwdExpanded && newPassword) {
+        payload.current_password = currentPassword;
         payload.new_password = newPassword;
       }
 
@@ -96,6 +106,7 @@ export default function ProfileComponent() {
       window.dispatchEvent(new CustomEvent('tf:user-updated', { detail: merged }));
 
       setSavedName(updated.name);
+      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       if (pwdExpanded) setPwdExpanded(false);
@@ -110,7 +121,16 @@ export default function ProfileComponent() {
     } finally {
       setIsSaving(false);
     }
-  }, [name, pwdExpanded, newPassword, confirmPassword, currentUser, avatarColor, showToast]);
+  }, [
+    name,
+    pwdExpanded,
+    currentPassword,
+    newPassword,
+    confirmPassword,
+    currentUser,
+    avatarColor,
+    showToast,
+  ]);
 
   const initials = getInitials(savedName || 'U');
 
@@ -174,13 +194,7 @@ export default function ProfileComponent() {
                 <Mail size={14} className={styles.labelIcon} aria-hidden />
                 Email address
               </label>
-              <input
-                className={`${styles.input} ${styles.inputReadonly}`}
-                value={email}
-                readOnly
-                title="Email cannot be changed in this demo"
-              />
-              <p className={styles.hint}>Email changes are not supported in the demo.</p>
+              <input className={`${styles.input} ${styles.inputReadonly}`} value={email} readOnly />
             </div>
 
             <div className={styles.divider} />
@@ -190,6 +204,7 @@ export default function ProfileComponent() {
               onClick={() => {
                 setPwdExpanded((v) => !v);
                 setPwdError('');
+                setCurrentPassword('');
                 setNewPassword('');
                 setConfirmPassword('');
               }}
@@ -205,6 +220,28 @@ export default function ProfileComponent() {
 
             {pwdExpanded && (
               <div className={styles.pwdSection}>
+                <div className={styles.fieldGroup}>
+                  <label className={styles.label}>Current password</label>
+                  <div className={styles.passwordWrap}>
+                    <input
+                      className={styles.input}
+                      type={showCurrent ? 'text' : 'password'}
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="Enter current password"
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      className={styles.eyeBtn}
+                      onClick={() => setShowCurrent((v) => !v)}
+                      aria-label={showCurrent ? 'Hide password' : 'Show password'}
+                    >
+                      {showCurrent ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                </div>
+
                 <div className={styles.fieldGroup}>
                   <label className={styles.label}>New password</label>
                   <div className={styles.passwordWrap}>

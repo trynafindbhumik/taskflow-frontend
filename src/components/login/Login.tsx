@@ -1,10 +1,10 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, ArrowRight, Eye, EyeOff, Copy, Check } from 'lucide-react';
+import { Mail, ArrowRight, Eye, EyeOff, AlertCircle, RotateCw } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -25,42 +25,62 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-const DEMO_EMAIL = 'test@example.com';
-const DEMO_PASSWORD = 'password123';
-
 export default function LoginComponent() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [copiedField, setCopiedField] = useState<'email' | 'password' | null>(null);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const [isResending, setIsResending] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
 
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showToast } = useToast();
+
+  useEffect(() => {
+    if (cooldown <= 0) {
+      return undefined;
+    }
+    const timer = setInterval(() => {
+      setCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-    setValue,
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
     mode: 'onBlur',
   });
 
-  const handleCopyToClipboard = useCallback((text: string, field: 'email' | 'password') => {
-    navigator.clipboard.writeText(text);
-    setCopiedField(field);
-    setTimeout(() => setCopiedField(null), 2000);
-  }, []);
-
-  const handleFillDemoCredentials = useCallback(() => {
-    setValue('email', DEMO_EMAIL);
-    setValue('password', DEMO_PASSWORD);
-  }, [setValue]);
+  const handleResend = async () => {
+    if (!unverifiedEmail || cooldown > 0 || isResending) return;
+    setIsResending(true);
+    try {
+      const res = await apiFetch<{ message: string }>('/auth/resend-verification', {
+        method: 'POST',
+        body: JSON.stringify({ email: unverifiedEmail }),
+      });
+      showToast(res.message, 'success');
+      setCooldown(60);
+    } catch (err: unknown) {
+      const errObj = err as { retryAfter?: number; message?: string };
+      if (errObj && errObj.retryAfter) {
+        setCooldown(errObj.retryAfter);
+      }
+      const msg = err instanceof Error ? err.message : 'Failed to resend verification email';
+      showToast(msg, 'error');
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
+    setUnverifiedEmail(null);
 
     try {
       const res = await apiFetch<AuthResponse>('/auth/login', {
@@ -77,10 +97,13 @@ export default function LoginComponent() {
       const redirectTo = redirect ? decodeURIComponent(redirect) : '/dashboard';
 
       router.push(redirectTo);
-      reset(); // optional: clear form
+      reset();
     } catch (error: unknown) {
+      const errObj = error as { unverified?: boolean; email?: string; message?: string };
+      if (errObj && errObj.unverified) {
+        setUnverifiedEmail(errObj.email || data.email);
+      }
       const message = error instanceof Error ? error.message : 'Invalid email or password';
-
       showToast(message, 'error');
     } finally {
       setIsLoading(false);
@@ -90,52 +113,6 @@ export default function LoginComponent() {
   return (
     <AuthLayout title="Welcome back" subtitle="Sign in to your account to continue.">
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <div className={styles.demoCredentialsContainer}>
-          <div className={styles.demoCredentialsHeader}>
-            <h3 className={styles.demoCredentialsTitle}>Demo Credentials</h3>
-            <button
-              type="button"
-              className={styles.fillButton}
-              onClick={handleFillDemoCredentials}
-              aria-label="Fill demo credentials"
-            >
-              Fill Demo
-            </button>
-          </div>
-
-          <div className={styles.credentialsGrid}>
-            <div className={styles.credentialItem}>
-              <label className={styles.credentialLabel}>Email:</label>
-              <div className={styles.credentialValue}>
-                <code className={styles.credentialCode}>{DEMO_EMAIL}</code>
-                <button
-                  type="button"
-                  className={styles.copyButton}
-                  onClick={() => handleCopyToClipboard(DEMO_EMAIL, 'email')}
-                  aria-label="Copy email"
-                >
-                  {copiedField === 'email' ? <Check size={14} /> : <Copy size={14} />}
-                </button>
-              </div>
-            </div>
-
-            <div className={styles.credentialItem}>
-              <label className={styles.credentialLabel}>Password:</label>
-              <div className={styles.credentialValue}>
-                <code className={styles.credentialCode}>{DEMO_PASSWORD}</code>
-                <button
-                  type="button"
-                  className={styles.copyButton}
-                  onClick={() => handleCopyToClipboard(DEMO_PASSWORD, 'password')}
-                  aria-label="Copy password"
-                >
-                  {copiedField === 'password' ? <Check size={14} /> : <Copy size={14} />}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <Input
           label="Email address"
           placeholder="you@example.com"
@@ -146,7 +123,12 @@ export default function LoginComponent() {
         />
 
         <div className={styles.fieldGroup}>
-          <label className={styles.fieldLabel}>Password</label>
+          <div className={styles.fieldLabelRow}>
+            <label className={styles.fieldLabel}>Password</label>
+            <Link href="/forgot-password" className={styles.forgotLink}>
+              Forgot password?
+            </Link>
+          </div>
           <div className={styles.passwordWrap}>
             <input
               className={styles.input}
@@ -167,6 +149,32 @@ export default function LoginComponent() {
             <p className={styles.errorText}>{errors.password.message}</p>
           )}
         </div>
+
+        {unverifiedEmail && (
+          <div className={styles.unverifiedBox}>
+            <div className={styles.unverifiedHeader}>
+              <AlertCircle size={16} />
+              <span>Email verification required</span>
+            </div>
+            <p>
+              Please verify your email address (<strong>{unverifiedEmail}</strong>) before logging
+              in.
+            </p>
+            <button
+              type="button"
+              className={styles.resendBtn}
+              onClick={handleResend}
+              disabled={isResending || cooldown > 0}
+            >
+              <RotateCw size={13} className={isResending ? 'animate-spin' : ''} />
+              {isResending
+                ? 'Sending email...'
+                : cooldown > 0
+                  ? `Resend in ${cooldown}s`
+                  : 'Resend verification email'}
+            </button>
+          </div>
+        )}
 
         <Button type="submit" isLoading={isLoading} rightIcon={<ArrowRight size={16} />}>
           Sign in

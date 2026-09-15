@@ -116,9 +116,9 @@
     width: 100vw !important;
     height: 92dvh;
     border-left: none;
-    border-top: none; /* No border so it looks seamless on mobile */
+    border-top: none;
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    /* Slide from bottom on mobile */
+
     transform: translateY(48px);
     opacity: 0;
   }

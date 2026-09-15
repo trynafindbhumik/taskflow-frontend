@@ -60,7 +60,7 @@
   gap: 0.25rem;
 }
 
-.markAllBtn,
+.headerActionBtn,
 .closeBtn {
   width: 28px;
   height: 28px;
@@ -69,16 +69,53 @@
   align-items: center;
   justify-content: center;
   color: var(--muted-foreground);
+  border: none;
+  background: none;
   transition:
     background-color 0.12s ease,
     color 0.12s ease;
   cursor: pointer;
 }
 
-.markAllBtn:hover,
+.headerActionBtn:hover,
 .closeBtn:hover {
   background-color: var(--secondary);
   color: var(--foreground);
+}
+
+.itemDeleteBtn {
+  opacity: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-foreground);
+  border: none;
+  background: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: 0.25rem;
+  transition: all 0.15s ease;
+}
+
+.item:hover .itemDeleteBtn {
+  opacity: 1;
+}
+
+.itemDeleteBtn:hover {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--primary);
+  flex-shrink: 0;
+  margin-top: 4px;
 }
 
 .list {

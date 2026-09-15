@@ -18,10 +18,12 @@ interface TaskColumnProps {
   status: TaskStatus;
   tasks: Task[];
   members?: User[];
+  projectOwnerId?: string;
   onStatusChange: (id: string, status: TaskStatus) => void;
   onSubtaskToggle?: (taskId: string, subtaskId: string, completed: boolean) => void;
   onReorder: (draggedId: string, targetId: string, position: 'above' | 'below') => void;
   onAddTask: (status: TaskStatus) => void;
+  onViewTaskDetails?: (task: Task) => void;
   onEditTask: (task: Task) => void;
   onDeleteTask: (id: string) => void;
 }
@@ -30,10 +32,12 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
   status,
   tasks,
   members = [],
+  projectOwnerId,
   onStatusChange,
   onSubtaskToggle,
   onReorder,
   onAddTask,
+  onViewTaskDetails,
   onEditTask,
   onDeleteTask,
 }) => {
@@ -52,82 +56,63 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
   };
 
   const handleColumnDragLeave = (e: React.DragEvent) => {
-    // Only clear when leaving the column entirely
     if (!e.currentTarget.contains(e.relatedTarget as Node)) {
       setColumnDragOver(false);
       setDropTarget(null);
-      dragOverTarget.current = null;
     }
   };
 
   const handleColumnDrop = (e: React.DragEvent) => {
     e.preventDefault();
-
-    // If we're dropping on the column background (not on a card), move to this status at end
-    if (!dragOverTarget.current) {
-      const taskId = e.dataTransfer.getData('taskId');
-      if (taskId) {
-        onStatusChange(taskId, status);
-      }
-    }
-
     setColumnDragOver(false);
     setDropTarget(null);
     dragOverTarget.current = null;
-  };
-
-  const handleCardDragStart = (_e: React.DragEvent, _id: string) => {
-    setDropTarget(null);
-    dragOverTarget.current = null;
-  };
-
-  const handleCardDragOver = (e: React.DragEvent, cardId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.dataTransfer.dropEffect = 'move';
-
-    setColumnDragOver(false);
-    dragOverTarget.current = cardId;
-
-    // Determine above/below based on cursor relative to card midpoint
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const pos: 'above' | 'below' = e.clientY < rect.top + rect.height / 2 ? 'above' : 'below';
-    setDropTarget({ id: cardId, pos });
-  };
-
-  const handleCardDrop = (e: React.DragEvent, targetCardId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-
     const draggedId = e.dataTransfer.getData('taskId');
     const draggedStatus = e.dataTransfer.getData('taskStatus') as TaskStatus;
 
-    if (!draggedId || draggedId === targetCardId) {
-      setDropTarget(null);
-      dragOverTarget.current = null;
-      return;
-    }
-
-    const pos = dropTarget?.id === targetCardId ? dropTarget.pos : 'below';
+    if (!draggedId) return;
 
     if (draggedStatus !== status) {
-      // Cross-column: change status first, then position relative to target
       onStatusChange(draggedId, status);
-      // A brief delay lets the status update propagate before reordering
-      setTimeout(() => onReorder(draggedId, targetCardId, pos), 10);
-    } else {
-      // Same-column reorder
-      onReorder(draggedId, targetCardId, pos);
     }
+  };
 
-    setDropTarget(null);
+  const handleCardDragStart = (e: React.DragEvent, id: string) => {
+    e.stopPropagation();
+    e.dataTransfer.setData('taskId', id);
+    e.dataTransfer.setData('taskStatus', status);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleCardDragOver = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragOverTarget.current = targetId;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    const pos = e.clientY < midY ? 'above' : 'below';
+
+    setDropTarget({ id: targetId, pos });
+  };
+
+  const handleCardDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const draggedId = e.dataTransfer.getData('taskId');
+    const pos = dropTarget?.pos || 'below';
+
     setColumnDragOver(false);
+    setDropTarget(null);
     dragOverTarget.current = null;
+
+    if (!draggedId || draggedId === targetId) return;
+    onReorder(draggedId, targetId, pos);
   };
 
   return (
     <div
-      className={`${styles.column} ${columnDragOver && !dropTarget ? styles.dragOver : ''}`}
+      className={`${styles.column} ${columnDragOver ? styles.dragOver : ''}`}
       onDragOver={handleColumnDragOver}
       onDragLeave={handleColumnDragLeave}
       onDrop={handleColumnDrop}
@@ -154,8 +139,10 @@ export const TaskColumn: React.FC<TaskColumnProps> = ({
             key={task.id}
             {...task}
             members={members}
+            projectOwnerId={projectOwnerId}
             onStatusChange={onStatusChange}
             onSubtaskToggle={onSubtaskToggle}
+            onViewDetails={onViewTaskDetails}
             onEdit={onEditTask}
             onDelete={onDeleteTask}
             onDragStart={handleCardDragStart}

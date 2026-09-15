@@ -1,6 +1,6 @@
 'use client';
 
-import { Bell, CheckCheck, CheckSquare, UserPlus, Clock, X } from 'lucide-react';
+import { Bell, CheckCheck, CheckSquare, UserPlus, Clock, X, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -42,7 +42,6 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Fetch notifications when opened
   useEffect(() => {
     let cancelled = false;
 
@@ -68,10 +67,20 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
     };
   }, [isOpen]);
 
-  // Close on outside click (excluding the trigger)
+  useEffect(() => {
+    const handleNotifReceived = (e: Event) => {
+      const detail = (e as CustomEvent<Notification>).detail;
+      if (detail) {
+        setNotifications((prev) => [detail, ...prev.filter((n) => n.id !== detail.id)]);
+      }
+    };
+    window.addEventListener('tf:notification-received', handleNotifReceived);
+    return () => window.removeEventListener('tf:notification-received', handleNotifReceived);
+  }, []);
+
   useEffect(() => {
     if (!isOpen) {
-      return () => {};
+      return () => undefined;
     }
 
     const handleOutside = (e: MouseEvent) => {
@@ -94,12 +103,24 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
 
   const markRead = async (id: string) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
-    await apiFetch(`/notifications/${id}/read`, { method: 'PATCH' }).catch(() => null);
+    await apiFetch(`/notifications/${id}/read`, { method: 'PATCH' }).catch(() => undefined);
   };
 
   const markAllRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    await apiFetch('/notifications/read-all', { method: 'POST' }).catch(() => null);
+    await apiFetch('/notifications/read-all', { method: 'POST' }).catch(() => undefined);
+  };
+
+  const handleClearOne = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    await apiFetch(`/notifications/${id}`, { method: 'DELETE' }).catch(() => undefined);
+  };
+
+  const handleClearAll = async () => {
+    setNotifications([]);
+    await apiFetch('/notifications/clear-all', { method: 'DELETE' }).catch(() => undefined);
   };
 
   const handleClick = (notif: Notification) => {
@@ -124,8 +145,21 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
         </div>
         <div className={styles.headerActions}>
           {unreadCount > 0 && (
-            <button className={styles.markAllBtn} onClick={markAllRead} title="Mark all as read">
+            <button
+              className={styles.headerActionBtn}
+              onClick={markAllRead}
+              title="Mark all as read"
+            >
               <CheckCheck size={14} />
+            </button>
+          )}
+          {notifications.length > 0 && (
+            <button
+              className={styles.headerActionBtn}
+              onClick={handleClearAll}
+              title="Clear all notifications"
+            >
+              <Trash2 size={14} />
             </button>
           )}
           <button className={styles.closeBtn} onClick={onClose} aria-label="Close">
@@ -150,10 +184,13 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
 
         {!isLoading &&
           notifications.map((notif) => (
-            <button
+            <div
               key={notif.id}
               className={`${styles.item} ${!notif.read ? styles.itemUnread : ''}`}
               onClick={() => handleClick(notif)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && handleClick(notif)}
             >
               <div className={`${styles.typeIcon} ${styles[`type_${notif.type}`]}`}>
                 {TYPE_ICONS[notif.type]}
@@ -164,7 +201,16 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
                 <span className={styles.time}>{timeAgo(notif.created_at)}</span>
               </div>
               {!notif.read && <span className={styles.dot} />}
-            </button>
+              <button
+                type="button"
+                className={styles.itemDeleteBtn}
+                onClick={(e) => handleClearOne(e, notif.id)}
+                title="Clear notification"
+                aria-label="Clear notification"
+              >
+                <X size={13} />
+              </button>
+            </div>
           ))}
       </div>
     </div>

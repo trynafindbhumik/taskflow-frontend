@@ -79,7 +79,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     let left = rect.left;
     let transformOrigin = 'top left';
 
-    // Vertical smart flip
     const spaceBelow = viewportHeight - rect.bottom;
     const spaceAbove = rect.top;
 
@@ -88,7 +87,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
       transformOrigin = 'bottom left';
     }
 
-    // Horizontal safe area
     if (left + calWidth > viewportWidth - 16) {
       left = Math.max(16, viewportWidth - calWidth - 16);
       transformOrigin = transformOrigin.replace('left', 'right');

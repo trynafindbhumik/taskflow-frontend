@@ -309,7 +309,6 @@
   flex-shrink: 0;
 }
 
-/* Three-dot button — appears on hover */
 .menuBtn {
   width: 24px;
   height: 24px;
@@ -338,7 +337,6 @@
   color: var(--foreground);
 }
 
-/* Context menu — rendered via portal at document.body with position:fixed */
 .contextMenu {
   background-color: var(--card);
   border: 1px solid var(--border);
