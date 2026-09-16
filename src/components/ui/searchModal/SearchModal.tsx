@@ -26,7 +26,6 @@ const PRIORITY_CLASS: Record<Task['priority'], string> = {
   high: 'priorityHigh',
 };
 
-// Recent searches stored in memory (no localStorage)
 let recentSearches: string[] = [];
 
 export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
@@ -37,7 +36,6 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Focus input when opened
   useEffect(() => {
     if (isOpen) {
       setQuery('');
@@ -46,7 +44,6 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
     }
   }, [isOpen]);
 
-  // Close on Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (isOpen && e.key === 'Escape') onClose();
@@ -59,7 +56,6 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
     };
   }, [isOpen, onClose]);
 
-  // Body scroll lock
   useEffect(() => {
     let prev = '';
 
@@ -90,7 +86,6 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
     }
   }, []);
 
-  // Debounced search
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
@@ -122,7 +117,6 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()} role="search">
-        {/* Search input */}
         <div className={styles.inputRow}>
           <Search size={18} className={styles.searchIcon} />
           <input
@@ -149,9 +143,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
           </button>
         </div>
 
-        {/* Results body */}
         <div className={styles.body}>
-          {/* Loading */}
           {isLoading && (
             <div className={styles.loadingRow}>
               <div className={styles.spinner} />
@@ -159,7 +151,6 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
             </div>
           )}
 
-          {/* Recent searches — shown when no query */}
           {!query && !isLoading && recentSearches.length > 0 && (
             <div className={styles.section}>
               <p className={styles.sectionLabel}>
@@ -175,7 +166,6 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
             </div>
           )}
 
-          {/* Empty state — no query, no recent */}
           {!query && !isLoading && recentSearches.length === 0 && (
             <div className={styles.emptyState}>
               <Search size={32} strokeWidth={1.5} />
@@ -183,7 +173,6 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
             </div>
           )}
 
-          {/* No results */}
           {query && !isLoading && results && totalResults === 0 && (
             <div className={styles.emptyState}>
               <p>
@@ -193,10 +182,8 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
             </div>
           )}
 
-          {/* Results */}
           {results && totalResults > 0 && !isLoading && (
             <>
-              {/* Projects */}
               {results.projects.length > 0 && (
                 <div className={styles.section}>
                   <p className={styles.sectionLabel}>
@@ -224,7 +211,6 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
                 </div>
               )}
 
-              {/* Tasks */}
               {results.tasks.length > 0 && (
                 <div className={styles.section}>
                   <p className={styles.sectionLabel}>
@@ -262,7 +248,6 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
           )}
         </div>
 
-        {/* Footer hint */}
         {totalResults > 0 && (
           <div className={styles.footer}>
             <span>

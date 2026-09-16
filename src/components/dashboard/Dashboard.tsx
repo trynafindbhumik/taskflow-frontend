@@ -165,7 +165,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Delete Project
   const handleDeleteProject = async () => {
     if (!deleteId) return;
 

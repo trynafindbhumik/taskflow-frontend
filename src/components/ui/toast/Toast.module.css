@@ -25,7 +25,6 @@
   }
 }
 
-/* Left accent line */
 .toast::before {
   content: '';
   position: absolute;
@@ -45,7 +44,6 @@
   background-color: var(--status-todo-fg);
 }
 
-/* Icon colour */
 .icon {
   display: flex;
   flex-shrink: 0;

@@ -14,16 +14,19 @@ import {
   X,
   LayoutDashboard,
   FolderOpen,
+  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import React, { useState, useRef, useEffect } from 'react';
 
 import { useTheme } from '@/components/providers/themeProvider/ThemeProvider';
 import { NotificationPanel } from '@/components/ui/notificationPanel/NotificationPanel';
 import { SearchModal } from '@/components/ui/searchModal/SearchModal';
+import { useToast } from '@/components/ui/toast/ToastContext';
 import { apiFetch } from '@/utils/api';
 import { auth } from '@/utils/auth';
+import { getSocket, disconnectSocket } from '@/utils/socket';
 import type { Notification, User as UserType } from '@/utils/types';
 
 import styles from './Navbar.module.css';
@@ -56,11 +59,17 @@ const NavItem: React.FC<NavLinkProps> = ({ href, children, onClick, mobile }) =>
 };
 
 export const Navbar: React.FC = () => {
-  const router = useRouter();
   const { theme, toggleTheme } = useTheme();
+  const { showToast } = useToast();
+  const mounted = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
-  // Reactive user state — updates when Profile dispatches tf:user-updated.
-  const [user, setUser] = useState<UserType | null>(() => auth.getUser());
+  const [user, setUser] = useState<UserType | null>(() =>
+    typeof window !== 'undefined' ? auth.getUser() : null
+  );
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -71,17 +80,42 @@ export const Navbar: React.FC = () => {
   const menuRef = useRef<HTMLDivElement>(null);
   const notifBtnRef = useRef<HTMLButtonElement>(null);
 
-  // Keep displayed name in sync when Profile saves.
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return undefined;
+
+    const handleRealtimeNotif = (notif: Notification) => {
+      setUnreadCount((c) => c + 1);
+      showToast(notif.message || notif.title || 'New notification', 'info');
+      window.dispatchEvent(new CustomEvent('tf:notification-received', { detail: notif }));
+    };
+
+    socket.on('notification', handleRealtimeNotif);
+
+    return () => {
+      socket.off('notification', handleRealtimeNotif);
+    };
+  }, [showToast]);
+
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent<UserType>).detail;
       if (detail) setUser(detail);
     };
     window.addEventListener('tf:user-updated', handler);
+
+    apiFetch<UserType>('/auth/me')
+      .then((me) => {
+        if (me) {
+          auth.setUser(me);
+          setUser(me);
+        }
+      })
+      .catch(() => undefined);
+
     return () => window.removeEventListener('tf:user-updated', handler);
   }, []);
 
-  // Load initial unread count.
   useEffect(() => {
     const controller = new AbortController();
     apiFetch<Notification[]>('/notifications')
@@ -90,7 +124,7 @@ export const Navbar: React.FC = () => {
           setUnreadCount(data.filter((n) => !n.read).length);
         }
       })
-      .catch(() => null);
+      .catch(() => undefined);
     return () => controller.abort();
   }, []);
 
@@ -122,9 +156,13 @@ export const Navbar: React.FC = () => {
     };
   }, [mobileNavOpen]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await apiFetch('/auth/logout', { method: 'POST' });
+    } catch {}
+    disconnectSocket();
     auth.logout();
-    router.push('/login');
+    window.location.href = '/login';
   };
 
   const handleNotifClose = () => {
@@ -163,6 +201,18 @@ export const Navbar: React.FC = () => {
           <nav className={styles.nav} aria-label="Main navigation">
             <NavItem href="/dashboard">Dashboard</NavItem>
             <NavItem href="/projects">Projects</NavItem>
+            <NavItem href="/ai">
+              <Sparkles
+                size={14}
+                style={{
+                  display: 'inline',
+                  marginRight: '4px',
+                  verticalAlign: 'middle',
+                  color: 'var(--primary)',
+                }}
+              />
+              AI Agent
+            </NavItem>
           </nav>
         </div>
 
@@ -181,9 +231,23 @@ export const Navbar: React.FC = () => {
             className={styles.iconBtn}
             onClick={toggleTheme}
             aria-label="Toggle theme"
-            title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            title={
+              mounted
+                ? theme === 'light'
+                  ? 'Switch to dark mode'
+                  : 'Switch to light mode'
+                : 'Toggle theme'
+            }
           >
-            {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+            {mounted ? (
+              theme === 'light' ? (
+                <Moon size={18} />
+              ) : (
+                <Sun size={18} />
+              )
+            ) : (
+              <Sun size={18} />
+            )}
           </button>
 
           <div className={styles.notifWrapper}>
@@ -259,7 +323,6 @@ export const Navbar: React.FC = () => {
         </div>
       </header>
 
-      {/* Mobile drawer */}
       {mobileNavOpen && (
         <div className={styles.mobileOverlay} onClick={() => setMobileNavOpen(false)}>
           <nav
@@ -293,6 +356,10 @@ export const Navbar: React.FC = () => {
               <NavItem href="/projects" mobile onClick={() => setMobileNavOpen(false)}>
                 <FolderOpen size={18} />
                 Projects
+              </NavItem>
+              <NavItem href="/ai" mobile onClick={() => setMobileNavOpen(false)}>
+                <Sparkles size={18} />
+                AI Agent
               </NavItem>
               <NavItem href="/profile" mobile onClick={() => setMobileNavOpen(false)}>
                 <User size={18} />

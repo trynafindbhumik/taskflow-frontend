@@ -54,7 +54,6 @@
   color: #fff;
 }
 
-/* Context menu trigger */
 .menuWrapper {
   position: relative;
 }
@@ -139,7 +138,6 @@
   background-color: var(--primary-subtle);
 }
 
-/* Card body */
 .content {
   flex: 1;
   min-height: 0;
@@ -170,7 +168,6 @@
   overflow: hidden;
 }
 
-/* Card footer */
 .footer {
   display: flex;
   justify-content: space-between;

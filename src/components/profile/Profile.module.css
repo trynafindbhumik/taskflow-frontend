@@ -200,7 +200,6 @@
   box-shadow: none;
 }
 
-/* Password toggle button */
 .pwdToggle {
   display: flex;
   align-items: center;
@@ -230,7 +229,6 @@
   color: var(--foreground);
 }
 
-/* Expandable password section */
 .pwdSection {
   display: flex;
   flex-direction: column;

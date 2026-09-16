@@ -1,10 +1,9 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, User, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Mail, User, ArrowRight, Eye, EyeOff, MailCheck, RotateCw } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -13,7 +12,6 @@ import { Button } from '@/components/ui/button/Button';
 import { Input } from '@/components/ui/input/Input';
 import { useToast } from '@/components/ui/toast/ToastContext';
 import { apiFetch } from '@/utils/api';
-import { auth } from '@/utils/auth';
 import { type AuthResponse } from '@/utils/types';
 
 import styles from './Register.module.css';
@@ -36,9 +34,21 @@ export default function RegisterComponent() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+  const [isResending, setIsResending] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
 
-  const router = useRouter();
   const { showToast } = useToast();
+
+  useEffect(() => {
+    if (cooldown <= 0) {
+      return undefined;
+    }
+    const timer = setInterval(() => {
+      setCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   const {
     register,
@@ -49,14 +59,13 @@ export default function RegisterComponent() {
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
     try {
-      const res = await apiFetch<AuthResponse>('/auth/register', {
+      await apiFetch<AuthResponse>('/auth/register', {
         method: 'POST',
         body: JSON.stringify({ name: data.name, email: data.email, password: data.password }),
       });
-      auth.setToken(res.token);
-      auth.setUser(res.user);
-      showToast('Account created successfully!', 'success');
-      router.push('/dashboard');
+      setRegisteredEmail(data.email);
+      setCooldown(60);
+      showToast('Verification email sent!', 'success');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Registration failed';
       showToast(message, 'error');
@@ -64,6 +73,76 @@ export default function RegisterComponent() {
       setIsLoading(false);
     }
   };
+
+  const handleResend = async () => {
+    if (!registeredEmail || cooldown > 0 || isResending) return;
+    setIsResending(true);
+    try {
+      const res = await apiFetch<{ message: string }>('/auth/resend-verification', {
+        method: 'POST',
+        body: JSON.stringify({ email: registeredEmail }),
+      });
+      showToast(res.message, 'success');
+      setCooldown(60);
+    } catch (err: unknown) {
+      const errObj = err as { retryAfter?: number; message?: string };
+      if (errObj && errObj.retryAfter) {
+        setCooldown(errObj.retryAfter);
+      }
+      const msg = err instanceof Error ? err.message : 'Failed to resend verification email';
+      showToast(msg, 'error');
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  if (registeredEmail) {
+    return (
+      <AuthLayout
+        title="Check your inbox"
+        subtitle={`We've sent a verification link to ${registeredEmail}`}
+      >
+        <div className={styles.successContainer}>
+          <div className={styles.mailBadge}>
+            <MailCheck size={32} />
+          </div>
+
+          <div className={styles.successBox}>
+            <p style={{ fontWeight: 600, marginBottom: '0.375rem' }}>Next steps:</p>
+            <ol style={{ paddingLeft: '1.25rem', margin: 0 }}>
+              <li>
+                Open the email sent to <strong>{registeredEmail}</strong>
+              </li>
+              <li>Click the verification link to verify your account</li>
+              <li>Sign in to your TaskFlow account</li>
+            </ol>
+          </div>
+
+          <div className={styles.resendRow}>
+            <button
+              type="button"
+              className={styles.resendBtn}
+              onClick={handleResend}
+              disabled={isResending || cooldown > 0}
+            >
+              <RotateCw size={15} className={isResending ? 'animate-spin' : ''} />
+              {isResending
+                ? 'Sending email...'
+                : cooldown > 0
+                  ? `Resend in ${cooldown}s`
+                  : 'Resend verification email'}
+            </button>
+
+            <p className={styles.switchText}>
+              <Link href="/login" className={styles.switchLink}>
+                Already verified? Sign in
+              </Link>
+            </p>
+          </div>
+        </div>
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout title="Create account" subtitle="Join TaskFlow and start managing your work.">

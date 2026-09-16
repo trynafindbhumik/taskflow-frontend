@@ -80,7 +80,6 @@
   color: var(--foreground);
 }
 
-/* Rendered via portal — position is set inline */
 .popover {
   background-color: var(--card);
   border: 1px solid var(--border);

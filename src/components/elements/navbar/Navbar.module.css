@@ -79,7 +79,29 @@
   background-color: var(--primary-subtle) !important;
 }
 
-/* Search trigger */
+.aiBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-full, 9999px);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(168, 85, 247, 0.1) 100%);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: #6366f1;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.aiBtn:hover {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  transform: translateY(-1px);
+}
+
 .searchTrigger {
   display: flex;
   align-items: center;
@@ -176,7 +198,6 @@
   position: relative;
 }
 
-/* User menu */
 .userMenu {
   position: relative;
   margin-left: 0.25rem;
@@ -303,8 +324,6 @@
   margin: 0.375rem 0;
 }
 
-/* ── Mobile Drawer ─────────────────────────────────────────────────────────── */
-
 .mobileOverlay {
   display: none;
   position: fixed;
@@ -394,7 +413,6 @@
   background-color: var(--secondary);
 }
 
-/* Active state for both desktop and mobile */
 .mobileNavLink.navLinkActive {
   color: var(--primary);
   background-color: var(--primary-subtle);
@@ -437,7 +455,6 @@
   }
 }
 
-/* Responsive breakpoints */
 @media (max-width: 768px) {
   .nav,
   .userInfo,

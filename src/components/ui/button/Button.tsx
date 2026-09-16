@@ -42,7 +42,7 @@ export const Button: React.FC<ButtonProps> = ({
         {leftIcon}
       </span>
     )}
-    {children && <span>{children}</span>}
+    {children && <span className={styles.content}>{children}</span>}
     {!isLoading && rightIcon && (
       <span className={styles.icon} aria-hidden>
         {rightIcon}

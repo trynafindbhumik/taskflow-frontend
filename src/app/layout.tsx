@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 
-import { MSWProvider } from '@/components/providers/mswProvider/MswProvider';
 import { ThemeProvider } from '@/components/providers/themeProvider/ThemeProvider';
 import { ToastProvider } from '@/components/ui/toast/ToastContext';
 
@@ -21,17 +20,6 @@ export const metadata: Metadata = {
   description: 'Made by Bhumik Jain',
 };
 
-const themeInitScript = `
-  (function () {
-    try {
-      var saved = localStorage.getItem('tf-theme');
-      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      var theme = saved === 'dark' || saved === 'light' ? saved : (prefersDark ? 'dark' : 'light');
-      document.documentElement.setAttribute('data-theme', theme);
-    } catch (_) {}
-  })();
-`;
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -40,19 +28,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-theme="dark"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      {/* Blocking script — must run before any CSS is applied */}
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
       <body className="min-h-full flex flex-col">
-        <MSWProvider>
-          <ThemeProvider>
-            <ToastProvider>{children}</ToastProvider>
-          </ThemeProvider>
-        </MSWProvider>
+        <ThemeProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

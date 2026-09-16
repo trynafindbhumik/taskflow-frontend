@@ -17,7 +17,7 @@
 .column {
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* 👈 important */
+  overflow: hidden;
 }
 
 .column.dragOver {
@@ -133,7 +133,6 @@
   color: var(--primary);
 }
 
-/* Custom scrollbar inside column */
 .column::-webkit-scrollbar {
   width: 4px;
 }
