@@ -12,36 +12,22 @@ interface StatsArtifactViewProps {
 }
 
 export const StatsArtifactView: React.FC<StatsArtifactViewProps> = ({ activeStats }) => {
-  const projects = activeStats?.projects || [
-    {
-      name: 'Real Estate CRM System',
-      progress: 85,
-      tasks_completed: 17,
-      tasks_total: 20,
-      status: 'On Track',
-    },
-    {
-      name: 'TaskFlow Web Redesign',
-      progress: 70,
-      tasks_completed: 7,
-      tasks_total: 10,
-      status: 'On Track',
-    },
-    {
-      name: 'Mobile App React Native',
-      progress: 40,
-      tasks_completed: 4,
-      tasks_total: 10,
-      status: 'At Risk',
-    },
-    {
-      name: 'Infrastructure & DB Migration',
-      progress: 100,
-      tasks_completed: 4,
-      tasks_total: 4,
-      status: 'Completed',
-    },
-  ];
+  if (!activeStats || !activeStats.projects || activeStats.projects.length === 0) {
+    return (
+      <div className={styles.emptyArtifactState}>
+        <div className={styles.emptyIcon}>
+          <BarChart2 size={28} />
+        </div>
+        <h3 className={styles.emptyTitle}>No Completion Stats Data Available</h3>
+        <p className={styles.emptyDesc}>
+          Ask TaskFlow Assistant in the chat (e.g.{' '}
+          <em>&quot;Show project completion stats&quot;</em>) to calculate live workspace metrics.
+        </p>
+      </div>
+    );
+  }
+
+  const projects = activeStats.projects;
 
   return (
     <div className={styles.statsContainer}>

@@ -67,7 +67,9 @@ export const Navbar: React.FC = () => {
     () => false
   );
 
-  const [user, setUser] = useState<UserType | null>(() => auth.getUser());
+  const [user, setUser] = useState<UserType | null>(() =>
+    typeof window !== 'undefined' ? auth.getUser() : null
+  );
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);

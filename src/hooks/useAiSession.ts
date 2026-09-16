@@ -17,8 +17,6 @@ import type {
   AiExecutionLogItem,
 } from '@/utils/types';
 
-const LOCAL_STORAGE_KEY = 'tf_ai_sessions';
-
 export interface UseAiSessionOptions {
   initialSessionId?: string;
 }
@@ -35,8 +33,17 @@ export function useAiSession({ initialSessionId }: UseAiSessionOptions = {}) {
     {
       id: 'welcome',
       role: 'assistant',
-      content:
-        'Hello! I am TaskFlow AI Assistant. Ask me to generate project implementation plans, calculate overdue task bottlenecks, or display team workload analysis.',
+      content: `Hello! 👋 Welcome to TaskFlow AI!
+
+I'm here to help you with:
+
+- ✅ Project creation & planning
+- ✅ Task & subtask management
+- ✅ Team workload analysis
+- ✅ Bottleneck tracking
+- ✅ Requirement document processing
+
+How can I assist you today? Whether you want to create a new project, manage tasks, or analyze team performance — just let me know! 🚀`,
     },
   ]);
 
@@ -55,70 +62,104 @@ export function useAiSession({ initialSessionId }: UseAiSessionOptions = {}) {
   const [showHistory, setShowHistory] = useState(false);
   const [storedSessions, setStoredSessions] = useState<StoredSession[]>([]);
 
-  useEffect(() => {
+  const fetchRemoteSessions = useCallback(async () => {
     try {
-      const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-      if (raw) {
-        setStoredSessions(JSON.parse(raw));
-      }
-    } catch {}
-  }, []);
+      const remoteConvs = (await apiFetch('/ai/sessions')) as Array<{
+        id: string;
+        title: string;
+        created_at: string;
+        updated_at: string;
+        last_message: string;
+      }>;
 
-  const saveCurrentSessionToStorage = useCallback(
-    (currentMsgs: LocalChatMessage[]) => {
-      try {
-        const firstUserMsg = currentMsgs.find((m) => m.role === 'user');
-        const sessionTitle = firstUserMsg
-          ? firstUserMsg.content.slice(0, 32) + (firstUserMsg.content.length > 32 ? '…' : '')
-          : 'New AI Chat';
-
-        const updatedSession: StoredSession = {
-          id: sessionId,
-          title: sessionTitle,
-          timestamp: new Date().toLocaleDateString('en-US', {
+      if (remoteConvs && Array.isArray(remoteConvs)) {
+        const formatted: StoredSession[] = remoteConvs.map((c) => ({
+          id: c.id,
+          title: c.title || 'AI Chat',
+          timestamp: new Date(c.updated_at || c.created_at).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
           }),
-          messages: currentMsgs,
-          activeTab,
-          proposal: activeProposal,
-          statsData: activeStats,
-          overdueData: activeOverdue,
-          workloadData: activeWorkload,
-        };
+          messages: [],
+          activeTab: 'plan',
+        }));
+        setStoredSessions(formatted);
+      }
+    } catch {}
+  }, []);
 
-        setStoredSessions((prev) => {
-          const filtered = prev.filter((s) => s.id !== sessionId);
-          const next = [updatedSession, ...filtered];
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(next));
-          return next;
-        });
-      } catch {}
-    },
-    [sessionId, activeTab, activeProposal, activeStats, activeOverdue, activeWorkload]
-  );
+  const fetchWorkspaceAnalytics = useCallback(async () => {
+    try {
+      const analytics = (await apiFetch('/ai/analytics')) as {
+        stats: ProjectStatsArtifactData;
+        overdue: OverdueTasksArtifactData;
+        workload: TeamWorkloadArtifactData;
+      };
+      if (analytics) {
+        if (analytics.stats) setActiveStats(analytics.stats);
+        if (analytics.overdue) setActiveOverdue(analytics.overdue);
+        if (analytics.workload) setActiveWorkload(analytics.workload);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    fetchRemoteSessions();
+    fetchWorkspaceAnalytics();
+  }, [fetchRemoteSessions, fetchWorkspaceAnalytics]);
 
   useEffect(() => {
     if (!initialSessionId) return;
 
     const loadRemoteSession = async () => {
       try {
-        const history = (await apiFetch(`/ai/sessions/${initialSessionId}/history`)) as Array<{
-          id: string;
-          role: 'user' | 'assistant';
-          content: string;
-        }>;
+        const res = await apiFetch(`/ai/sessions/${initialSessionId}/history`);
+        let historyMsgs: any[] = [];
+        let remoteProposal: any = null;
 
-        if (history && history.length > 0) {
-          setMessages(
-            history.map((h) => ({
-              id: h.id,
-              role: h.role,
-              content: h.content,
-            }))
-          );
+        if (Array.isArray(res)) {
+          historyMsgs = res;
+        } else if (res && typeof res === 'object') {
+          historyMsgs = (res as any).messages || [];
+          remoteProposal = (res as any).proposal || null;
+        }
+
+        if (historyMsgs && historyMsgs.length > 0) {
+          const formattedMsgs: LocalChatMessage[] = historyMsgs.map((h: any) => ({
+            id: h.id,
+            role: h.role,
+            content: h.content
+              .replace(/<\/?user_message>/g, '')
+              .replace(/<user_attachment[\s\S]*?<\/user_attachment>/g, '')
+              .trim(),
+            executedActions: h.executed_actions,
+            artifactType: h.artifact_type,
+          }));
+          setMessages(formattedMsgs);
+
+          if (remoteProposal) {
+            setActiveProposal(remoteProposal);
+            setActiveTab('plan');
+          } else {
+            const lastArtifactMsg = [...historyMsgs].reverse().find((m: any) => m.payload);
+            if (lastArtifactMsg && lastArtifactMsg.payload) {
+              if (lastArtifactMsg.artifact_type === 'plan') {
+                setActiveProposal(lastArtifactMsg.payload);
+                setActiveTab('plan');
+              } else if (lastArtifactMsg.artifact_type === 'stats') {
+                setActiveStats(lastArtifactMsg.payload);
+                setActiveTab('stats');
+              } else if (lastArtifactMsg.artifact_type === 'overdue') {
+                setActiveOverdue(lastArtifactMsg.payload);
+                setActiveTab('overdue');
+              } else if (lastArtifactMsg.artifact_type === 'workload') {
+                setActiveWorkload(lastArtifactMsg.payload);
+                setActiveTab('workload');
+              }
+            }
+          }
         }
       } catch {}
     };
@@ -127,14 +168,22 @@ export function useAiSession({ initialSessionId }: UseAiSessionOptions = {}) {
   }, [initialSessionId]);
 
   const handleSendMessage = useCallback(
-    async (textToSend?: string) => {
+    async (
+      textToSend?: string,
+      attachment?: { filename: string; content: string; mimeType?: string },
+      selectedProjectId?: string
+    ) => {
       const query = textToSend || input;
-      if (!query.trim() || isLoading) return;
+      if ((!query.trim() && !attachment) || isLoading) return;
+
+      const userMsgContent = attachment
+        ? `[Attached: ${attachment.filename}] ${query.trim()}`
+        : query.trim();
 
       const userMsg: LocalChatMessage = {
         id: `usr_${Date.now()}`,
         role: 'user',
-        content: query.trim(),
+        content: userMsgContent,
       };
 
       const nextMessages = [...messages, userMsg];
@@ -142,10 +191,8 @@ export function useAiSession({ initialSessionId }: UseAiSessionOptions = {}) {
       if (!textToSend) setInput('');
       setIsLoading(true);
 
-      saveCurrentSessionToStorage(nextMessages);
-
       try {
-        const res = await sendAiMessage(query.trim(), sessionId);
+        const res = await sendAiMessage(query.trim(), sessionId, attachment, selectedProjectId);
 
         const assistantMsg: LocalChatMessage = {
           id: `ast_${Date.now()}`,
@@ -181,7 +228,7 @@ export function useAiSession({ initialSessionId }: UseAiSessionOptions = {}) {
           setActiveTab('workload');
         }
 
-        saveCurrentSessionToStorage(finalMsgs);
+        fetchRemoteSessions();
       } catch (err: unknown) {
         const errorMsg: LocalChatMessage = {
           id: `err_${Date.now()}`,
@@ -190,12 +237,11 @@ export function useAiSession({ initialSessionId }: UseAiSessionOptions = {}) {
         };
         const finalMsgs = [...nextMessages, errorMsg];
         setMessages(finalMsgs);
-        saveCurrentSessionToStorage(finalMsgs);
       } finally {
         setIsLoading(false);
       }
     },
-    [input, isLoading, messages, sessionId, saveCurrentSessionToStorage]
+    [input, isLoading, messages, sessionId, fetchRemoteSessions]
   );
 
   const handleProceedPlan = useCallback(async () => {
@@ -210,19 +256,133 @@ export function useAiSession({ initialSessionId }: UseAiSessionOptions = {}) {
   }, [activeProposal, showToast]);
 
   const handleSelectSession = useCallback(
-    (session: StoredSession) => {
+    async (session: StoredSession) => {
       setSessionId(session.id);
-      setMessages(session.messages || []);
-      setActiveTab(session.activeTab || 'plan');
-      if (session.proposal) setActiveProposal(session.proposal);
-      if (session.statsData) setActiveStats(session.statsData);
-      if (session.overdueData) setActiveOverdue(session.overdueData);
-      if (session.workloadData) setActiveWorkload(session.workloadData);
       setShowHistory(false);
       router.replace(`/ai/${session.id}`);
+
+      try {
+        const res = await apiFetch(`/ai/sessions/${session.id}/history`);
+        let historyMsgs: any[] = [];
+        let remoteProposal: any = null;
+
+        if (Array.isArray(res)) {
+          historyMsgs = res;
+        } else if (res && typeof res === 'object') {
+          historyMsgs = (res as any).messages || [];
+          remoteProposal = (res as any).proposal || null;
+        }
+
+        if (historyMsgs && historyMsgs.length > 0) {
+          const formattedMsgs: LocalChatMessage[] = historyMsgs.map((h: any) => ({
+            id: h.id,
+            role: h.role,
+            content: h.content
+              .replace(/<\/?user_message>/g, '')
+              .replace(/<user_attachment[\s\S]*?<\/user_attachment>/g, '')
+              .trim(),
+            executedActions: h.executed_actions,
+            artifactType: h.artifact_type,
+          }));
+          setMessages(formattedMsgs);
+
+          if (remoteProposal) {
+            setActiveProposal(remoteProposal);
+            setActiveTab('plan');
+          } else {
+            const lastArtifactMsg = [...historyMsgs].reverse().find((m: any) => m.payload);
+            if (lastArtifactMsg && lastArtifactMsg.payload) {
+              if (lastArtifactMsg.artifact_type === 'plan') {
+                setActiveProposal(lastArtifactMsg.payload);
+                setActiveTab('plan');
+              } else if (lastArtifactMsg.artifact_type === 'stats') {
+                setActiveStats(lastArtifactMsg.payload);
+                setActiveTab('stats');
+              } else if (lastArtifactMsg.artifact_type === 'overdue') {
+                setActiveOverdue(lastArtifactMsg.payload);
+                setActiveTab('overdue');
+              } else if (lastArtifactMsg.artifact_type === 'workload') {
+                setActiveWorkload(lastArtifactMsg.payload);
+                setActiveTab('workload');
+              }
+            }
+          }
+        }
+      } catch {}
     },
     [router]
   );
+
+  const handleDeleteSession = useCallback(
+    async (targetSessionId: string) => {
+      try {
+        await apiFetch(`/ai/sessions/${targetSessionId}`, { method: 'DELETE' });
+        setStoredSessions((prev) => prev.filter((s) => s.id !== targetSessionId));
+        showToast('Chat thread deleted successfully', 'success');
+        if (targetSessionId === sessionId) {
+          router.replace('/ai');
+        }
+      } catch (err: unknown) {
+        showToast(err instanceof Error ? err.message : 'Failed to delete chat session', 'error');
+      }
+    },
+    [sessionId, router, showToast]
+  );
+
+  const handleShareSession = useCallback(async () => {
+    try {
+      const res = (await apiFetch(`/ai/sessions/${sessionId}/share`, {
+        method: 'POST',
+      })) as { share_id: string };
+
+      if (res && res.share_id) {
+        const shareUrl = `${window.location.origin}/ai?shareId=${res.share_id}`;
+        await navigator.clipboard.writeText(shareUrl);
+        showToast('Shared chat link copied to clipboard!', 'success');
+      }
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : 'Failed to generate share link', 'error');
+    }
+  }, [sessionId, showToast]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const shareParam = urlParams.get('shareId');
+    if (!shareParam) return;
+
+    const loadSharedSession = async () => {
+      try {
+        const res = (await apiFetch(`/ai/share/${shareParam}`)) as {
+          id: string;
+          share_id: string;
+          title: string;
+          author: string;
+          messages: any[];
+          proposal?: any;
+        };
+
+        if (res) {
+          setSessionId(res.share_id || shareParam);
+          const formattedMsgs: LocalChatMessage[] = (res.messages || []).map((h: any) => ({
+            id: h.id,
+            role: h.role,
+            content: h.content,
+            executedActions: h.executed_actions,
+            artifactType: h.artifact_type,
+          }));
+          setMessages(formattedMsgs);
+          if (res.proposal) {
+            setActiveProposal(res.proposal);
+            setActiveTab('plan');
+          }
+          showToast(`Opened shared chat thread by ${res.author}`, 'info');
+        }
+      } catch {}
+    };
+
+    loadSharedSession();
+  }, [showToast]);
 
   return {
     sessionId,
@@ -243,5 +403,7 @@ export function useAiSession({ initialSessionId }: UseAiSessionOptions = {}) {
     handleSendMessage,
     handleProceedPlan,
     handleSelectSession,
+    handleDeleteSession,
+    handleShareSession,
   };
 }

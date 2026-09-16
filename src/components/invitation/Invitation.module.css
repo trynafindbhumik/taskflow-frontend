@@ -46,6 +46,29 @@
   font-size: 0.84rem;
   color: var(--muted-foreground);
   margin-top: 0.25rem;
+  line-height: 1.5;
+}
+
+.descToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-left: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--primary);
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  white-space: nowrap;
+  vertical-align: baseline;
+  transition: opacity 0.15s ease;
+}
+
+.descToggle:hover {
+  opacity: 0.8;
 }
 
 .metaRow {

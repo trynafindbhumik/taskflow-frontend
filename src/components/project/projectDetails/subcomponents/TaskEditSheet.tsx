@@ -69,18 +69,41 @@ export const TaskEditSheet: React.FC<TaskEditSheetProps> = ({
     ...members.filter((m) => m && m.id).map((m) => ({ value: m.id, label: m.name })),
   ];
 
-  const canDeleteTask =
-    currentUser?.id === task.creator_id || currentUser?.id === ownerId || !task.creator_id;
+  const isProjectOwner = currentUser?.id === ownerId;
+  const isTaskCreator = currentUser?.id === task.creator_id;
+  const canEditTaskDetails = isProjectOwner || isTaskCreator || !task.creator_id;
+
+  const canDeleteTask = canEditTaskDetails;
 
   return (
     <SideSheet isOpen={isOpen} onClose={onClose} title="Edit Task" description={task.title}>
       <div className={styles.taskForm}>
+        {!canEditTaskDetails && (
+          <div
+            style={{
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+              borderRadius: '8px',
+              padding: '10px 14px',
+              marginBottom: '14px',
+              fontSize: '0.8125rem',
+              color: 'var(--primary)',
+              lineHeight: 1.4,
+            }}
+          >
+            🔒 <strong>Read-Only Mode:</strong> Only the task creator or project owner can edit task
+            title, description, priority, assignee, or due date. You can update the{' '}
+            <strong>Status</strong> below.
+          </div>
+        )}
+
         <div className={styles.fieldGroup}>
           <label className={styles.fieldLabel}>Title *</label>
           <input
             className={styles.textInput}
             placeholder="What needs to be done?"
             value={form.title}
+            disabled={!canEditTaskDetails}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
           />
         </div>
@@ -92,6 +115,7 @@ export const TaskEditSheet: React.FC<TaskEditSheetProps> = ({
             placeholder="Optional description…"
             rows={3}
             value={form.description}
+            disabled={!canEditTaskDetails}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
           />
         </div>
@@ -101,6 +125,7 @@ export const TaskEditSheet: React.FC<TaskEditSheetProps> = ({
             label="Priority"
             options={PRIORITY_OPTIONS}
             value={form.priority}
+            disabled={!canEditTaskDetails}
             onChange={(v) => setForm((f) => ({ ...f, priority: v as TaskPriority }))}
           />
           <Select
@@ -116,12 +141,14 @@ export const TaskEditSheet: React.FC<TaskEditSheetProps> = ({
             label="Assignee"
             options={memberOptions}
             value={form.assignee_id}
+            disabled={!canEditTaskDetails}
             onChange={(v) => setForm((f) => ({ ...f, assignee_id: v }))}
             placeholder="Unassigned"
           />
           <DatePicker
             label="Due Date"
             value={form.due_date}
+            disabled={!canEditTaskDetails}
             onChange={(v) => setForm((f) => ({ ...f, due_date: v }))}
           />
         </div>

@@ -57,7 +57,7 @@ export const ProjectToolbar: React.FC<ProjectToolbarProps> = ({
 
   return (
     <div className={styles.toolbar}>
-      <div className={styles.filtersGroup}>
+      <div className={styles.filters}>
         <input
           type="text"
           className={styles.searchInput}
@@ -66,7 +66,7 @@ export const ProjectToolbar: React.FC<ProjectToolbarProps> = ({
           onChange={(e) => onSearchChange(e.target.value)}
         />
 
-        <div className={styles.selectWrapper}>
+        <div className={styles.selectWrap}>
           <Select
             options={STATUS_OPTIONS}
             value={statusFilter}
@@ -75,7 +75,7 @@ export const ProjectToolbar: React.FC<ProjectToolbarProps> = ({
           />
         </div>
 
-        <div className={styles.selectWrapper}>
+        <div className={styles.selectWrap}>
           <Select
             options={PRIORITY_OPTIONS_FILTER}
             value={priorityFilter}
@@ -84,7 +84,7 @@ export const ProjectToolbar: React.FC<ProjectToolbarProps> = ({
           />
         </div>
 
-        <div className={styles.selectWrapper}>
+        <div className={styles.selectWrap}>
           <Select
             options={assigneeOptions}
             value={assigneeFilter}

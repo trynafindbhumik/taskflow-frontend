@@ -15,6 +15,11 @@ interface AuthLayoutProps {
 
 export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitle }) => {
   const { theme, toggleTheme } = useTheme();
+  const mounted = React.useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   return (
     <div className={styles.container}>
@@ -30,13 +35,8 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
           {children}
         </div>
 
-        <button
-          className={styles.themeToggle}
-          onClick={toggleTheme}
-          aria-label="Toggle theme"
-          suppressHydrationWarning
-        >
-          {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+        <button className={styles.themeToggle} onClick={toggleTheme} aria-label="Toggle theme">
+          {mounted && theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
         </button>
       </div>
 

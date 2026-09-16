@@ -1,6 +1,6 @@
 'use client';
 
-import { FileText, ListTodo, BarChart2, AlertTriangle, UserCheck, Terminal } from 'lucide-react';
+import { FileText, ListTodo, BarChart2, AlertTriangle, UserCheck } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 
 import { useToast } from '@/components/ui/toast/ToastContext';
@@ -10,7 +10,6 @@ import { apiFetch } from '@/utils/api';
 import styles from './AiWorkspace.module.css';
 import { ChatHistoryDrawer } from './subcomponents/ChatHistoryDrawer';
 import { ChatStream } from './subcomponents/ChatStream';
-import { LogsArtifactView } from './subcomponents/LogsArtifactView';
 import { OverdueArtifactView } from './subcomponents/OverdueArtifactView';
 import { PlanArtifactView } from './subcomponents/PlanArtifactView';
 import { ProposalApprovalBar } from './subcomponents/ProposalApprovalBar';
@@ -37,18 +36,63 @@ export const AiWorkspace: React.FC<AiWorkspaceProps> = ({ initialSessionId }) =>
     activeStats,
     activeOverdue,
     activeWorkload,
-    executionLogs,
     showHistory,
     setShowHistory,
     storedSessions,
     handleSendMessage,
     handleProceedPlan,
     handleSelectSession,
+    handleDeleteSession,
+    handleShareSession,
   } = useAiSession({ initialSessionId });
 
   const [userProjects, setUserProjects] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedProject, setSelectedProject] = useState<{ id: string; name: string } | null>(null);
   const [showProjectDropdown, setShowProjectDropdown] = useState(false);
+  const [reviewComments, setReviewComments] = useState<
+    Array<{ id: string; taskTitle: string; text: string; selectedText?: string }>
+  >([]);
+
+  const handleAddReviewComment = (
+    taskTitle: string,
+    commentText: string,
+    selectedText?: string
+  ) => {
+    const newComment = {
+      id: `rev_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      taskTitle,
+      text: commentText,
+      selectedText,
+    };
+    setReviewComments((prev) => [...prev, newComment]);
+    showToast(`Added review note for "${taskTitle}"`, 'info');
+  };
+
+  const handleRemoveReviewComment = (commentId: string) => {
+    setReviewComments((prev) => prev.filter((c) => c.id !== commentId));
+  };
+
+  const handleUpdateReviewComment = (commentId: string, updatedText: string) => {
+    setReviewComments((prev) =>
+      prev.map((c) => (c.id === commentId ? { ...c, text: updatedText } : c))
+    );
+    showToast('Updated review note', 'info');
+  };
+
+  const handleSubmitPlanReview = () => {
+    if (reviewComments.length === 0) return;
+    const formattedNotes = reviewComments
+      .map((c) =>
+        c.selectedText
+          ? `- [Text Selection: "${c.selectedText}"] (${c.taskTitle}): ${c.text}`
+          : `- [Task: "${c.taskTitle}"]: ${c.text}`
+      )
+      .join('\n');
+    const promptMessage = `Review Feedback for Implementation Plan:\n${formattedNotes}\n\nPlease update the implementation plan with these targeted modifications.`;
+    handleSendMessage(promptMessage);
+    setReviewComments([]);
+    showToast('Plan review submitted to TaskFlow Assistant for refinement!', 'success');
+  };
 
   const mounted = React.useSyncExternalStore(
     () => () => {},
@@ -64,11 +108,7 @@ export const AiWorkspace: React.FC<AiWorkspaceProps> = ({ initialSessionId }) =>
         }
       })
       .catch(() => {
-        setUserProjects([
-          { id: 'p1', name: 'Real Estate CRM System' },
-          { id: 'p2', name: 'TaskFlow Web Redesign' },
-          { id: 'p3', name: 'Mobile App React Native' },
-        ]);
+        setUserProjects([]);
       });
   }, []);
 
@@ -84,6 +124,7 @@ export const AiWorkspace: React.FC<AiWorkspaceProps> = ({ initialSessionId }) =>
         storedSessions={storedSessions}
         activeConversationId={sessionId}
         onSelectSession={handleSelectSession}
+        onDeleteSession={handleDeleteSession}
       />
 
       <ChatStream
@@ -91,14 +132,15 @@ export const AiWorkspace: React.FC<AiWorkspaceProps> = ({ initialSessionId }) =>
         inputMessage={input}
         loading={isLoading}
         onInputChange={setInput}
-        onSendMessage={(prompt) => {
+        onSendMessage={(prompt, attachment) => {
           let text = prompt || input;
           if (selectedProject) {
             text = `[Project: ${selectedProject.name}] ${text}`;
           }
-          handleSendMessage(text);
+          handleSendMessage(text, attachment, selectedProject?.id);
         }}
         onOpenHistory={() => setShowHistory(true)}
+        onShareSession={handleShareSession}
         onNewSession={() =>
           handleSelectSession({
             id: `session_${Math.random().toString(36).slice(2, 9)}`,
@@ -135,9 +177,7 @@ export const AiWorkspace: React.FC<AiWorkspaceProps> = ({ initialSessionId }) =>
                   ? 'project_completion_stats.md'
                   : activeTab === 'overdue'
                     ? 'overdue_tasks_report.md'
-                    : activeTab === 'workload'
-                      ? 'team_workload_summary.md'
-                      : 'execution_monitor.log'}
+                    : 'team_workload_summary.md'}
             </div>
             {activeTab === 'plan' && activeProposal && activeProposal.status === 'pending' && (
               <span className={styles.reviewRequiredBadge}>User Review Required</span>
@@ -163,7 +203,7 @@ export const AiWorkspace: React.FC<AiWorkspaceProps> = ({ initialSessionId }) =>
               </span>
             ) : (
               <span className={`${styles.statusPill} ${styles.statusCompleted}`}>
-                {activeTab === 'logs' ? 'Execution Console' : 'Live Metric Artifact'}
+                Live Metric Artifact
               </span>
             )}
           </div>
@@ -205,22 +245,17 @@ export const AiWorkspace: React.FC<AiWorkspaceProps> = ({ initialSessionId }) =>
             <UserCheck size={15} />
             Team Workload
           </button>
-
-          <button
-            type="button"
-            className={`${styles.tabBtn} ${activeTab === 'logs' ? styles.tabActive : ''}`}
-            onClick={() => setActiveTab('logs')}
-          >
-            <Terminal size={15} />
-            Execution Monitor ({executionLogs.length})
-          </button>
         </div>
 
         <div className={styles.artifactBody}>
-          {activeTab === 'logs' ? (
-            <LogsArtifactView executionLogs={executionLogs} />
-          ) : activeTab === 'plan' ? (
-            <PlanArtifactView activeProposal={activeProposal} />
+          {activeTab === 'plan' ? (
+            <PlanArtifactView
+              activeProposal={activeProposal}
+              reviewComments={reviewComments}
+              onAddReviewComment={handleAddReviewComment}
+              onUpdateReviewComment={handleUpdateReviewComment}
+              onRemoveReviewComment={handleRemoveReviewComment}
+            />
           ) : activeTab === 'stats' ? (
             <StatsArtifactView activeStats={activeStats} />
           ) : activeTab === 'overdue' ? (
@@ -235,7 +270,12 @@ export const AiWorkspace: React.FC<AiWorkspaceProps> = ({ initialSessionId }) =>
         </div>
 
         {activeTab === 'plan' && (
-          <ProposalApprovalBar activeProposal={activeProposal} onProceed={handleProceedPlan} />
+          <ProposalApprovalBar
+            activeProposal={activeProposal}
+            reviewComments={reviewComments}
+            onProceed={handleProceedPlan}
+            onSubmitPlanReview={handleSubmitPlanReview}
+          />
         )}
       </div>
     </div>

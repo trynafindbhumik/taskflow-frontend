@@ -12,36 +12,26 @@ interface WorkloadArtifactViewProps {
 }
 
 export const WorkloadArtifactView: React.FC<WorkloadArtifactViewProps> = ({ activeWorkload }) => {
-  const summary = activeWorkload?.workload_summary || [
-    {
-      member_name: 'Bhumik Patel',
-      email: 'bhumik@taskflow.dev',
-      assigned_count: 8,
-      status: 'Overloaded',
-      top_task: 'Fix Payment Gateway Webhook Timeout',
-    },
-    {
-      member_name: 'Sarah Connor',
-      email: 'sarah@taskflow.dev',
-      assigned_count: 5,
-      status: 'Optimal',
-      top_task: 'Publish React Native iOS TestFlight Build',
-    },
-    {
-      member_name: 'Alex Rivera',
-      email: 'alex@taskflow.dev',
-      assigned_count: 3,
-      status: 'Available',
-      top_task: 'Audit User Role Permissions Schema',
-    },
-    {
-      member_name: 'David Kim',
-      email: 'david@taskflow.dev',
-      assigned_count: 2,
-      status: 'Available',
-      top_task: 'Setup Redis Caching Layer',
-    },
-  ];
+  if (
+    !activeWorkload ||
+    !activeWorkload.workload_summary ||
+    activeWorkload.workload_summary.length === 0
+  ) {
+    return (
+      <div className={styles.emptyArtifactState}>
+        <div className={styles.emptyIcon}>
+          <UserCheck size={28} />
+        </div>
+        <h3 className={styles.emptyTitle}>No Team Workload Data Available</h3>
+        <p className={styles.emptyDesc}>
+          Ask TaskFlow Assistant in the chat (e.g. <em>&quot;Show team workload summary&quot;</em>)
+          to analyze team capacity.
+        </p>
+      </div>
+    );
+  }
+
+  const summary = activeWorkload.workload_summary;
 
   return (
     <div className={styles.workloadContainer}>

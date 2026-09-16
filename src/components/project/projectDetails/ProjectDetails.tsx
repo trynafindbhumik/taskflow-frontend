@@ -73,6 +73,7 @@ export default function ProjectDetailPage() {
     handleRemoveMember,
     handleLeaveProject,
     handleSendInvites,
+    handleAddSubtaskInModal,
   } = useProjectTasks(projectId);
 
   const {
@@ -264,28 +265,7 @@ export default function ProjectDetailPage() {
         onSubtaskToggle={handleSubtaskToggle}
         detailsSubtaskTitle={detailsSubtaskTitle}
         setDetailsSubtaskTitle={setDetailsSubtaskTitle}
-        onAddSubtaskInModal={() => {
-          if (viewTask && detailsSubtaskTitle.trim()) {
-            setTasks((ts) =>
-              ts.map((t) =>
-                t.id === viewTask.id
-                  ? {
-                      ...t,
-                      subtasks: [
-                        ...(t.subtasks || []),
-                        {
-                          id: `st_${Math.random().toString(36).slice(2, 9)}`,
-                          title: detailsSubtaskTitle.trim(),
-                          completed: false,
-                        },
-                      ],
-                    }
-                  : t
-              )
-            );
-            setDetailsSubtaskTitle('');
-          }
-        }}
+        onAddSubtaskInModal={handleAddSubtaskInModal}
         isAddingSubtask={isAddingSubtask}
         onOpenEdit={openEdit}
         onDeleteRequest={(id) => setDeleteTaskId(id)}

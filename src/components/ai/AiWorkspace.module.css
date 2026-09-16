@@ -15,6 +15,9 @@
   display: flex;
   flex-direction: column;
   background-color: var(--card);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .chatHeader {
@@ -24,6 +27,9 @@
   align-items: center;
   justify-content: space-between;
   background-color: var(--secondary);
+  flex-shrink: 0;
+  z-index: 10;
+  position: relative;
 }
 
 .agentTitleInfo {
@@ -219,6 +225,7 @@
 .chatFeed {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 1.25rem;
   display: flex;
   flex-direction: column;
@@ -283,6 +290,9 @@
   font-size: 0.875rem;
   line-height: 1.5;
   box-shadow: var(--shadow-xs);
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  box-sizing: border-box;
 }
 
 .aiBubbleWrapper {
@@ -291,6 +301,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  box-sizing: border-box;
 }
 
 .aiBubble {
@@ -301,6 +312,9 @@
   font-size: 0.875rem;
   line-height: 1.55;
   border: 1px solid var(--border);
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  box-sizing: border-box;
 }
 
 .actionTag {
@@ -320,6 +334,7 @@
   padding: 1rem 1.25rem 1.25rem 1.25rem;
   border-top: 1px solid var(--border);
   background-color: var(--card);
+  flex-shrink: 0;
 }
 
 .promptCardContainer {
@@ -493,6 +508,7 @@
   flex-direction: column;
   background-color: var(--background);
   overflow: hidden;
+  min-width: 0;
 }
 
 .artifactHeader {
@@ -739,6 +755,32 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.taskDeadlineBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-md, 6px);
+  background-color: var(--primary-subtle, rgba(99, 102, 241, 0.12));
+  color: var(--primary, #6366f1);
+  border: 1px solid var(--border-strong, rgba(99, 102, 241, 0.3));
+  width: fit-content;
+  margin: 0.4rem 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.taskDeadlineBadge span {
+  opacity: 0.9;
+  letter-spacing: 0.01em;
+}
+
+.taskDeadlineBadge strong {
+  font-weight: 700;
+  color: var(--foreground);
 }
 
 .subtasksContainer {
@@ -1116,4 +1158,520 @@
 
 .logInfo {
   color: #38bdf8;
+}
+
+/* Antigravity-Style Plan Review System Styles */
+.reviewTaskActionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--border);
+}
+
+.addCommentBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: var(--primary);
+  background-color: var(--secondary);
+  border: 1px solid var(--border);
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.addCommentBtn:hover {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+.commentInputBox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  background-color: var(--card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.75rem;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.commentTextarea {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.825rem;
+  color: var(--foreground);
+  resize: none;
+  min-height: 48px;
+}
+
+.commentActionBtns {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.saveCommentBtn {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--primary);
+  border: none;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.cancelCommentBtn {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  background: transparent;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+}
+
+.taskCommentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+  width: 100%;
+}
+
+.reviewCommentBadge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background-color: var(--primary-subtle);
+  border: 1px solid var(--border-strong);
+  color: var(--foreground);
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.commentQuoteTag {
+  font-weight: 600;
+  font-style: italic;
+  color: var(--primary);
+  opacity: 0.9;
+  margin-right: 0.35rem;
+}
+
+.removeCommentBtn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.1rem;
+  display: flex;
+  align-items: center;
+  opacity: 0.75;
+}
+
+.removeCommentBtn:hover {
+  opacity: 1;
+}
+
+.submitReviewBtn {
+  background-color: var(--primary);
+  color: #ffffff;
+  border: none;
+  padding: 0.65rem 1.15rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 12px rgba(226, 55, 68, 0.25);
+}
+
+.submitReviewBtn:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+/* Floating Text Selection Tooltip & Modal */
+.floatingAnnotateBtn {
+  position: absolute;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--primary, #6366f1);
+  border: none;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-full, 9999px);
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  animation: popIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.floatingAnnotateBtn:hover {
+  background-color: var(--primary-dark, #4f46e5);
+  transform: scale(1.03);
+}
+
+.annotatedHighlightSpan {
+  position: relative;
+  background-color: rgba(99, 102, 241, 0.18);
+  border-bottom: 2px dashed var(--primary, #6366f1);
+  border-radius: 3px;
+  padding: 0.05rem 0.25rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline;
+  color: var(--foreground);
+}
+
+:global(.dark) .annotatedHighlightSpan {
+  background-color: rgba(99, 102, 241, 0.32);
+  border-bottom-color: #818cf8;
+}
+
+.annotatedHighlightSpan:hover {
+  background-color: rgba(99, 102, 241, 0.3);
+}
+
+.inlineCommentIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary, #6366f1);
+  margin-left: 0.25rem;
+  vertical-align: middle;
+}
+
+.commentPopoverCard {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 100;
+  background-color: var(--card, #1e1e2e);
+  border: 1px solid var(--border-strong, #313244);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+  border-radius: var(--radius-md, 8px);
+  padding: 0.75rem 0.9rem;
+  min-width: 260px;
+  max-width: 380px;
+  width: max-content;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.65rem;
+  animation: fadeIn 0.15s ease-out;
+  cursor: default;
+  white-space: normal;
+}
+
+.popoverText {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-style: normal;
+  color: var(--foreground);
+  line-height: 1.45;
+  word-break: break-word;
+  white-space: normal;
+  width: 100%;
+}
+
+.popoverActionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  width: 100%;
+  margin-top: 0.15rem;
+}
+
+.popoverResolveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.popoverEditBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: var(--primary);
+  background-color: var(--primary-subtle);
+  border: 1px solid var(--border-strong);
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.popoverEditBtn:hover {
+  background-color: var(--primary);
+  color: #ffffff;
+}
+
+.popoverDeleteBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: var(--destructive, #ef4444);
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-sm, 4px);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.popoverDeleteBtn:hover {
+  background-color: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+}
+
+.commentInputInline {
+  flex: 1;
+  background-color: var(--card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--foreground);
+  outline: none;
+}
+
+.selectionModalOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 60;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 5rem;
+  border-radius: var(--radius);
+}
+
+.selectionModalCard {
+  background-color: var(--card);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--shadow-xl, 0 20px 25px -5px rgba(0, 0, 0, 0.2));
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  width: 90%;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.selectionModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--foreground);
+}
+
+.closeSelectionModalBtn {
+  background: transparent;
+  border: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  padding: 0.2rem;
+}
+
+.selectionQuoteBox {
+  font-size: 0.8125rem;
+  font-style: italic;
+  color: var(--muted-foreground);
+  background-color: var(--secondary);
+  border-left: 3px solid var(--primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  max-height: 80px;
+  overflow-y: auto;
+}
+
+/* Review State Banners */
+.reviewStateBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1.15rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+  border: 1px solid transparent;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.bannerApproved {
+  background-color: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.25);
+  color: #15803d;
+}
+
+:global(.dark) .bannerApproved {
+  background-color: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.35);
+  color: #4ade80;
+}
+
+.bannerChanges {
+  background-color: rgba(147, 51, 234, 0.1);
+  border-color: rgba(147, 51, 234, 0.25);
+  color: #7e22ce;
+}
+
+:global(.dark) .bannerChanges {
+  background-color: rgba(147, 51, 234, 0.15);
+  border-color: rgba(147, 51, 234, 0.35);
+  color: #c084fc;
+}
+
+.bannerPending {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: #b45309;
+}
+
+:global(.dark) .bannerPending {
+  background-color: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+}
+
+.bannerTitle {
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin: 0 0 0.15rem 0;
+  line-height: 1.3;
+}
+
+.bannerDesc {
+  font-size: 0.8125rem;
+  margin: 0;
+  opacity: 0.9;
+  line-height: 1.45;
+}
+
+/* Queued Review Annotations Panel */
+.queuedAnnotationsContainer {
+  background-color: var(--card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.15rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.queuedHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.queuedGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.queuedCard {
+  background-color: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.queuedCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.queuedTargetBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  background-color: var(--primary-subtle);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.queuedCardText {
+  font-size: 0.825rem;
+  color: var(--foreground);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.resolveCommentBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.resolveCommentBtn:hover {
+  color: #10b981;
+  border-color: #10b981;
+  background-color: rgba(16, 185, 129, 0.08);
 }

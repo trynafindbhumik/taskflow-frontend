@@ -10,6 +10,8 @@ import {
   AlertTriangle,
   ArrowRight,
   Loader2,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -53,6 +55,7 @@ export default function InvitationComponent() {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [descExpanded, setDescExpanded] = useState<boolean>(false);
 
   useEffect(() => {
     if (!token) {
@@ -218,9 +221,40 @@ export default function InvitationComponent() {
               </div>
               <div>
                 <h3 className={styles.projectTitle}>{invitation.project_name}</h3>
-                {invitation.project_description && (
-                  <p className={styles.projectDesc}>{invitation.project_description}</p>
-                )}
+                {invitation.project_description &&
+                  (() => {
+                    const desc = invitation.project_description;
+                    const maxDescLength = 75;
+                    const isLongDesc = desc.length > maxDescLength;
+                    const displayedDesc =
+                      descExpanded || !isLongDesc ? desc : `${desc.slice(0, maxDescLength)}…`;
+
+                    return (
+                      <p className={styles.projectDesc}>
+                        {displayedDesc}
+                        {isLongDesc && (
+                          <>
+                            {' '}
+                            <button
+                              type="button"
+                              className={styles.descToggle}
+                              onClick={() => setDescExpanded((v) => !v)}
+                            >
+                              {descExpanded ? (
+                                <>
+                                  Show less <ChevronUp size={12} />
+                                </>
+                              ) : (
+                                <>
+                                  Read more <ChevronDown size={12} />
+                                </>
+                              )}
+                            </button>
+                          </>
+                        )}
+                      </p>
+                    );
+                  })()}
               </div>
             </div>
 

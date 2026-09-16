@@ -18,35 +18,21 @@ export const OverdueArtifactView: React.FC<OverdueArtifactViewProps> = ({
   onNotifyAssignee,
   onExtendDeadline,
 }) => {
-  const items = activeOverdue?.items || [
-    {
-      id: 'task_ov_1',
-      title: 'Fix Payment Gateway Webhook Timeout',
-      project_name: 'Real Estate CRM System',
-      assignee: 'Bhumik Patel',
-      due_date: '2026-09-11',
-      days_overdue: 4,
-      priority: 'high' as const,
-    },
-    {
-      id: 'task_ov_2',
-      title: 'Publish React Native iOS TestFlight Build',
-      project_name: 'Mobile App React Native',
-      assignee: 'Sarah Connor',
-      due_date: '2026-09-13',
-      days_overdue: 2,
-      priority: 'high' as const,
-    },
-    {
-      id: 'task_ov_3',
-      title: 'Audit User Role Permissions Schema',
-      project_name: 'TaskFlow Web Redesign',
-      assignee: 'Alex Rivera',
-      due_date: '2026-09-14',
-      days_overdue: 1,
-      priority: 'medium' as const,
-    },
-  ];
+  if (!activeOverdue || !activeOverdue.items || activeOverdue.items.length === 0) {
+    return (
+      <div className={styles.emptyArtifactState}>
+        <div className={styles.emptyIcon} style={{ color: '#10b981' }}>
+          <AlertTriangle size={28} />
+        </div>
+        <h3 className={styles.emptyTitle}>No Overdue Tasks!</h3>
+        <p className={styles.emptyDesc}>
+          All tasks across your workspace are on schedule or completed. 🎉
+        </p>
+      </div>
+    );
+  }
+
+  const items = activeOverdue.items;
 
   return (
     <div className={styles.overdueContainer}>

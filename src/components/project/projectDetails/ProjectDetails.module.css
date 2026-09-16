@@ -142,28 +142,37 @@
 }
 
 .viewToggle {
-  display: flex;
+  display: inline-flex;
+  align-items: center;
   background-color: var(--secondary);
-  padding: 3px;
-  border-radius: var(--radius);
-  gap: 2px;
+  padding: 4px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border);
+  gap: 4px;
   flex-shrink: 0;
 }
 
 .viewBtn {
-  width: 32px;
   height: 32px;
-  display: flex;
+  padding: 0 0.75rem;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.375rem;
   border-radius: calc(var(--radius) - 2px);
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--muted-foreground);
   border: none;
   background: none;
   cursor: pointer;
+  white-space: nowrap;
   transition:
     color 0.15s ease,
     background-color 0.15s ease;
+}
+
+.viewBtn:hover {
+  color: var(--foreground);
 }
 
 .viewBtnActive {
@@ -399,6 +408,9 @@
 }
 
 .listDate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   font-size: 0.75rem;
   color: var(--muted-foreground);
   white-space: nowrap;

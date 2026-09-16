@@ -1,6 +1,6 @@
 'use client';
 
-import { Clock, X } from 'lucide-react';
+import { Clock, Trash2, X } from 'lucide-react';
 import React from 'react';
 
 import type {
@@ -43,8 +43,8 @@ interface ChatHistoryDrawerProps {
   storedSessions: StoredSession[];
   activeConversationId?: string;
   onSelectSession: (session: StoredSession) => void;
+  onDeleteSession?: (sessionId: string) => void;
 }
-
 
 export const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({
   isOpen,
@@ -52,6 +52,7 @@ export const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({
   storedSessions,
   activeConversationId,
   onSelectSession,
+  onDeleteSession,
 }) => {
   if (!isOpen) return null;
 
@@ -89,14 +90,47 @@ export const ChatHistoryDrawer: React.FC<ChatHistoryDrawerProps> = ({
             storedSessions.map((s) => (
               <div
                 key={s.id}
-                className={`${styles.historyItem} ${s.id === activeConversationId ? styles.historyItemActive : ''
-                  }`}
+                className={`${styles.historyItem} ${
+                  s.id === activeConversationId ? styles.historyItemActive : ''
+                }`}
                 onClick={() => onSelectSession(s)}
+                style={{ position: 'relative' }}
               >
-                <div className={styles.historyTitle}>{s.title}</div>
-                <div className={styles.historyMeta}>
-                  {s.timestamp} • {s.messages.length} message(s)
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                  }}
+                >
+                  <div className={styles.historyTitle} style={{ flex: 1, paddingRight: '0.5rem' }}>
+                    {s.title}
+                  </div>
+                  {onDeleteSession && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteSession(s.id);
+                      }}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--muted-foreground)',
+                        cursor: 'pointer',
+                        padding: '0.2rem',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                      title="Delete chat session"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  )}
                 </div>
+                <div className={styles.historyMeta}>{s.timestamp}</div>
               </div>
             ))
           )}

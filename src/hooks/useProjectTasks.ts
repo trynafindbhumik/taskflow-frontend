@@ -104,6 +104,13 @@ export function useProjectTasks(projectId: string) {
           t.id === taskId ? { ...t, status: newStatus, updated_at: new Date().toISOString() } : t
         )
       );
+      setViewTask((prevView) => {
+        if (prevView && prevView.id === taskId) {
+          return { ...prevView, status: newStatus, updated_at: new Date().toISOString() };
+        }
+        return prevView;
+      });
+
       try {
         await apiFetch(`/tasks/${taskId}`, {
           method: 'PATCH',
@@ -111,6 +118,13 @@ export function useProjectTasks(projectId: string) {
         });
       } catch (err: unknown) {
         setTasks(prev);
+        setViewTask((prevView) => {
+          if (prevView && prevView.id === taskId) {
+            const oldTask = prev.find((pt) => pt.id === taskId);
+            return oldTask ? oldTask : prevView;
+          }
+          return prevView;
+        });
         showToast(err instanceof Error ? err.message : 'Failed to update status', 'error');
       }
     },
@@ -132,6 +146,16 @@ export function useProjectTasks(projectId: string) {
         })
       );
 
+      setViewTask((prevView) => {
+        if (prevView && prevView.id === taskId) {
+          const nextSubtasks = (prevView.subtasks ?? []).map((st) =>
+            st.id === subtaskId ? { ...st, completed } : st
+          );
+          return { ...prevView, subtasks: nextSubtasks, updated_at: new Date().toISOString() };
+        }
+        return prevView;
+      });
+
       try {
         await apiFetch(`/tasks/subtasks/${subtaskId}`, {
           method: 'PATCH',
@@ -139,6 +163,13 @@ export function useProjectTasks(projectId: string) {
         });
       } catch {
         setTasks(prev);
+        setViewTask((prevView) => {
+          if (prevView && prevView.id === taskId) {
+            const oldTask = prev.find((pt) => pt.id === taskId);
+            return oldTask ? oldTask : prevView;
+          }
+          return prevView;
+        });
         showToast('Failed to update subtask', 'error');
       }
     },
@@ -412,5 +443,33 @@ export function useProjectTasks(projectId: string) {
     handleRemoveMember,
     handleLeaveProject,
     handleSendInvites,
+    handleAddSubtaskInModal: async () => {
+      if (viewTask && detailsSubtaskTitle.trim()) {
+        const titleToCreate = detailsSubtaskTitle.trim();
+        setDetailsSubtaskTitle('');
+        setIsAddingSubtask(true);
+        try {
+          const createdSt = (await apiFetch(`/tasks/${viewTask.id}/subtasks`, {
+            method: 'POST',
+            body: JSON.stringify({ title: titleToCreate }),
+          })) as Subtask;
+
+          setTasks((ts) =>
+            ts.map((t) =>
+              t.id === viewTask.id ? { ...t, subtasks: [...(t.subtasks || []), createdSt] } : t
+            )
+          );
+          setViewTask((prevView) =>
+            prevView && prevView.id === viewTask.id
+              ? { ...prevView, subtasks: [...(prevView.subtasks || []), createdSt] }
+              : prevView
+          );
+        } catch {
+          showToast('Failed to add subtask', 'error');
+        } finally {
+          setIsAddingSubtask(false);
+        }
+      }
+    },
   };
 }
