@@ -1,7 +1,7 @@
 import { auth } from './auth';
 import type { AiChatResponse, AiConversation, AiMessage } from './types';
 
-const BASE_URL = 'http://localhost:4000';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 const MAX_RETRIES = 1;
 const RETRY_DELAY_MS = 600;
 
