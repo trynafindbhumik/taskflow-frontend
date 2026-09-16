@@ -7,3 +7,4 @@ pnpm-lock.yaml
 .pnpm-store
 dist
 coverage
+public/mockServiceWorker.js
