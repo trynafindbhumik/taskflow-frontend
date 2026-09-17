@@ -10,6 +10,7 @@ import * as z from 'zod';
 
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { Button } from '@/components/ui/button/Button';
+import { GoogleButton, type GoogleAuthPayload } from '@/components/ui/googleButton/GoogleButton';
 import { Input } from '@/components/ui/input/Input';
 import { useToast } from '@/components/ui/toast/ToastContext';
 import { apiFetch } from '@/utils/api';
@@ -55,6 +56,34 @@ export default function LoginComponent() {
     resolver: zodResolver(schema),
     mode: 'onBlur',
   });
+
+  const handleGoogleSuccess = async (payload: GoogleAuthPayload) => {
+    setIsLoading(true);
+    try {
+      const res = await apiFetch<AuthResponse>('/auth/google', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+
+      auth.setToken(res.access_token);
+      if (res.refresh_token) {
+        auth.setRefreshToken(res.refresh_token);
+      }
+      auth.setUser(res.user);
+
+      showToast(`Welcome back, ${res.user.name?.split(' ')[0]}!`, 'success');
+
+      const redirect = searchParams.get('redirect');
+      const redirectTo = redirect ? decodeURIComponent(redirect) : '/dashboard';
+
+      router.push(redirectTo);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Google sign-in failed';
+      showToast(message, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleResend = async () => {
     if (!unverifiedEmail || cooldown > 0 || isResending) return;
@@ -115,6 +144,20 @@ export default function LoginComponent() {
 
   return (
     <AuthLayout title="Welcome back" subtitle="Sign in to your account to continue.">
+      <div style={{ marginBottom: '1rem' }}>
+        <GoogleButton
+          onSuccess={handleGoogleSuccess}
+          onError={(msg) => showToast(msg, 'error')}
+          text="Continue with Google"
+          isLoading={isLoading}
+        />
+        <div className={styles.dividerRow}>
+          <div className={styles.dividerLine} />
+          <span>or sign in with email</span>
+          <div className={styles.dividerLine} />
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <Input
           label="Email address"

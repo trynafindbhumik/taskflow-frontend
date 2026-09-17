@@ -327,3 +327,91 @@
     width: 100%;
   }
 }
+
+.ssoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 1.125rem;
+  background-color: var(--secondary);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.ssoHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ssoTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.ssoBadgeConnected {
+  font-size: 0.725rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.ssoBadgeDisconnected {
+  font-size: 0.725rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  background-color: rgba(113, 113, 122, 0.15);
+  color: #a1a1aa;
+  border: 1px solid rgba(113, 113, 122, 0.3);
+}
+
+.ssoDesc {
+  font-size: 0.825rem;
+  color: var(--muted-foreground);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.disconnectBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.875rem;
+  border-radius: var(--radius);
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+  font-size: 0.825rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.disconnectBtn:hover:not(:disabled) {
+  background-color: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.disconnectBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinIcon {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
