@@ -67,9 +67,7 @@ export const Navbar: React.FC = () => {
     () => false
   );
 
-  const [user, setUser] = useState<UserType | null>(() =>
-    typeof window !== 'undefined' ? auth.getUser() : null
-  );
+  const [user, setUser] = useState<UserType | null>(null);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -79,6 +77,15 @@ export const Navbar: React.FC = () => {
 
   const menuRef = useRef<HTMLDivElement>(null);
   const notifBtnRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const cachedUser = auth.getUser();
+    if (cachedUser) {
+      queueMicrotask(() => {
+        setUser(cachedUser);
+      });
+    }
+  }, []);
 
   useEffect(() => {
     const socket = getSocket();

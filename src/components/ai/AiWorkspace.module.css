@@ -1675,3 +1675,327 @@
   border-color: #10b981;
   background-color: rgba(16, 185, 129, 0.08);
 }
+
+/* ==========================================================================
+   Mobile Responsiveness & View Switcher Styles
+   ========================================================================== */
+
+.mobileNavToggleBar {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .container {
+    flex-direction: column;
+    height: calc(100vh - 64px);
+    overflow: hidden;
+  }
+
+  .mobileNavToggleBar {
+    display: flex;
+    align-items: center;
+    background-color: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 0.75rem;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    z-index: 20;
+  }
+
+  .mobileTabBtn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    background-color: var(--secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    position: relative;
+  }
+
+  .mobileTabBtnActive {
+    color: var(--primary);
+    background-color: var(--primary-subtle);
+    border-color: var(--primary);
+    font-weight: 700;
+  }
+
+  .mobileNotificationBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: var(--radius-full);
+    background-color: var(--primary);
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .chatColumn {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    border-right: none;
+    height: 100%;
+    flex: 1;
+  }
+
+  .artifactColumn {
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    flex: 1;
+  }
+
+  .hiddenOnMobile {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .chatHeader {
+    padding: 0.75rem 0.875rem;
+    gap: 0.5rem;
+  }
+
+  .agentTitleInfo {
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .agentIconBadge {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+  }
+
+  .agentName {
+    font-size: 0.875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .agentModel {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.4rem;
+  }
+
+  .headerActions {
+    gap: 0.25rem;
+    flex-shrink: 0;
+  }
+
+  .historyToggleBtn,
+  .newChatBtn {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.75rem;
+  }
+
+  .chatFeed {
+    padding: 0.875rem 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .userBubble {
+    max-width: 92%;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.825rem;
+  }
+
+  .aiBubbleWrapper {
+    max-width: 100%;
+  }
+
+  .aiBubble {
+    padding: 0.75rem 0.85rem;
+    font-size: 0.825rem;
+  }
+
+  .chatInputSection {
+    padding: 0.65rem 0.75rem 0.75rem 0.75rem;
+  }
+
+  .promptCardContainer {
+    padding: 0.65rem 0.75rem;
+    border-radius: 12px;
+  }
+
+  .promptTextarea {
+    font-size: 0.875rem;
+    min-height: 44px;
+  }
+
+  .promptBottomBar {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .projectSelectorWrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .projectSelectorPill {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.75rem;
+  }
+
+  .roundSendBtn {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+  }
+
+  .projectDropdownMenu {
+    left: 0;
+    right: 0;
+    width: calc(100vw - 2rem);
+    max-width: 320px;
+  }
+
+  .historyDrawer {
+    width: 85vw;
+    max-width: 320px;
+  }
+
+  .artifactHeader {
+    padding: 0.75rem 0.875rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .artifactTitleGroup {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .tabsBar {
+    padding: 0 0.5rem;
+    gap: 0.15rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tabBtn {
+    padding: 0.55rem 0.65rem;
+    font-size: 0.8rem;
+    gap: 0.3rem;
+  }
+
+  .artifactBody {
+    padding: 0.75rem 0.65rem;
+  }
+
+  .approvalBar {
+    padding: 0.875rem 1rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.65rem;
+  }
+
+  .approvalMessage {
+    font-size: 0.8125rem;
+    text-align: center;
+  }
+
+  .approvalButtons {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .proceedBtn,
+  .submitReviewBtn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.65rem 1rem;
+    font-size: 0.825rem;
+  }
+
+  .metricsRow {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem !important;
+  }
+
+  .metricCard {
+    padding: 0.65rem 0.75rem !important;
+  }
+
+  .workloadGrid {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+
+  .overdueCard {
+    padding: 0.75rem !important;
+  }
+
+  .overdueActions {
+    flex-direction: column !important;
+    gap: 0.4rem !important;
+  }
+
+  .actionSmBtn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .commentPopoverCard {
+    max-width: calc(100vw - 2rem) !important;
+    min-width: 220px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+
+  .selectionModalCard {
+    width: calc(100vw - 2rem) !important;
+    max-width: 360px !important;
+    padding: 1rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .agentName {
+    font-size: 0.8125rem;
+  }
+
+  .historyToggleBtn span,
+  .newChatBtn span {
+    display: none;
+  }
+
+  .historyToggleBtn,
+  .newChatBtn {
+    padding: 0.35rem;
+  }
+
+  .pillBtn {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .tabsBar {
+    justify-content: flex-start;
+  }
+
+  .tabBtn {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.55rem;
+  }
+}

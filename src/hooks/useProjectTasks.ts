@@ -26,7 +26,6 @@ export function useProjectTasks(projectId: string) {
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [members, setMembers] = useState<User[]>([]);
-  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isNotFound, setIsNotFound] = useState(false);
@@ -80,21 +79,6 @@ export function useProjectTasks(projectId: string) {
 
     load();
   }, [projectId]);
-
-  useEffect(() => {
-    if (!membersOpen) return;
-
-    const fetchUsers = async () => {
-      try {
-        const users = (await apiFetch('/users')) as User[];
-        setAllUsers(users);
-      } catch {
-        showToast('Failed to load users list', 'error');
-      }
-    };
-
-    fetchUsers();
-  }, [membersOpen, showToast]);
 
   const handleStatusChange = useCallback(
     async (taskId: string, newStatus: TaskStatus) => {
@@ -399,7 +383,6 @@ export function useProjectTasks(projectId: string) {
     tasks,
     setTasks,
     members,
-    allUsers,
     currentUser,
     isLoading,
     isNotFound,
