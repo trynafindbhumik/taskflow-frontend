@@ -63,8 +63,19 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({
   const progressPercent =
     totalSubtasks > 0 ? Math.round((completedSubtasks / totalSubtasks) * 100) : 0;
 
-  const canDelete =
-    currentUser?.id === task.creator_id || currentUser?.id === ownerId || !task.creator_id;
+  const isProjectOwner =
+    (Boolean(currentUser?.id) && currentUser?.id === ownerId) ||
+    (Boolean(currentUser?.email) &&
+      members.find((m) => m.id === ownerId)?.email?.toLowerCase() ===
+        currentUser?.email?.toLowerCase());
+
+  const isTaskCreator =
+    (Boolean(currentUser?.id) && currentUser?.id === task.creator_id) ||
+    (Boolean(currentUser?.email) &&
+      members.find((m) => m.id === task.creator_id)?.email?.toLowerCase() ===
+        currentUser?.email?.toLowerCase());
+
+  const canDelete = isProjectOwner || isTaskCreator || !task.creator_id;
 
   return (
     <Modal

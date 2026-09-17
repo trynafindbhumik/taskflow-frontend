@@ -48,15 +48,19 @@ export function VerifyEmailContent() {
       try {
         const res = await apiFetch<{
           message: string;
-          token: string;
+          access_token: string;
+          refresh_token?: string;
           user: User;
         }>('/auth/verify-email', {
           method: 'POST',
           body: JSON.stringify({ token }),
         });
 
-        if (res.token && res.user) {
-          auth.setToken(res.token);
+        if (res.access_token && res.user) {
+          auth.setToken(res.access_token);
+          if (res.refresh_token) {
+            auth.setRefreshToken(res.refresh_token);
+          }
           auth.setUser(res.user);
         }
 
