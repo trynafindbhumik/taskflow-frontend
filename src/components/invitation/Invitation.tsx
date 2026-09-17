@@ -105,7 +105,8 @@ export default function InvitationComponent() {
 
       const res = await apiFetch<{
         message: string;
-        token?: string;
+        access_token?: string;
+        refresh_token?: string;
         user?: UserType;
         project_id: string;
       }>(`/invitations/${token}/accept`, {
@@ -113,8 +114,11 @@ export default function InvitationComponent() {
         body: JSON.stringify(payload),
       });
 
-      if (res.token && res.user) {
-        auth.setToken(res.token);
+      if (res.access_token && res.user) {
+        auth.setToken(res.access_token);
+        if (res.refresh_token) {
+          auth.setRefreshToken(res.refresh_token);
+        }
         auth.setUser(res.user);
       }
 

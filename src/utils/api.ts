@@ -64,7 +64,7 @@ export async function apiFetch<T>(
             }
             return apiFetch<T>(path, options, 1);
           }
-        } catch {}
+        } catch { }
       }
 
       auth.logout();

@@ -88,7 +88,10 @@ export default function LoginComponent() {
         body: JSON.stringify(data),
       });
 
-      auth.setToken(res.token);
+      auth.setToken(res.access_token);
+      if (res.refresh_token) {
+        auth.setRefreshToken(res.refresh_token);
+      }
       auth.setUser(res.user);
 
       showToast(`Welcome back, ${res.user.name?.split(' ')[0]}!`, 'success');

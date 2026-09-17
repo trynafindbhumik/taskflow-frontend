@@ -8,13 +8,13 @@ const USER_KEY = 'auth_user';
 
 export const auth = {
   setToken: (token: string) => {
-    Cookies.set(TOKEN_KEY, token, { expires: 1, secure: true, sameSite: 'strict' });
+    Cookies.set(TOKEN_KEY, token, { expires: 7, secure: true, sameSite: 'strict' });
   },
   getToken: () => {
     return Cookies.get(TOKEN_KEY);
   },
   setRefreshToken: (refreshToken: string) => {
-    Cookies.set(REFRESH_TOKEN_KEY, refreshToken, { expires: 7, secure: true, sameSite: 'strict' });
+    Cookies.set(REFRESH_TOKEN_KEY, refreshToken, { expires: 30, secure: true, sameSite: 'strict' });
   },
   getRefreshToken: () => {
     return Cookies.get(REFRESH_TOKEN_KEY);
