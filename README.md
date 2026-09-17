@@ -30,17 +30,17 @@ TaskFlow lets teams create projects, manage tasks across status columns, assign 
 
 ## 2. Tech Stack
 
-| Concern | Choice |
-| :--- | :--- |
-| **Framework** | Next.js 16.2.3 (App Router) |
-| **Language** | TypeScript (strict) |
-| **Styling** | CSS Modules + custom design tokens via CSS variables |
-| **Forms** | React Hook Form + Zod |
-| **Mocking** | MSW 2.x (browser service worker) |
-| **Auth State** | `js-cookie` (token) + `localStorage` (user object) |
-| **Icons** | Lucide React |
-| **Linting/Formatting** | ESLint + Prettier |
-| **Containerisation** | Docker (multi-stage build) + Docker Compose |
+| Concern                | Choice                                               |
+| :--------------------- | :--------------------------------------------------- |
+| **Framework**          | Next.js 16.2.3 (App Router)                          |
+| **Language**           | TypeScript (strict)                                  |
+| **Styling**            | CSS Modules + custom design tokens via CSS variables |
+| **Forms**              | React Hook Form + Zod                                |
+| **Mocking**            | MSW 2.x (browser service worker)                     |
+| **Auth State**         | `js-cookie` (token) + `localStorage` (user object)   |
+| **Icons**              | Lucide React                                         |
+| **Linting/Formatting** | ESLint + Prettier                                    |
+| **Containerisation**   | Docker (multi-stage build) + Docker Compose          |
 
 ---
 
@@ -55,6 +55,7 @@ cp .env.example .env
 # 2. Build and start container
 docker compose up --build
 ```
+
 App will be live at `http://localhost:3000`.
 
 ### Option B — Local dev server (pnpm)
