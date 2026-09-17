@@ -3,15 +3,18 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Mail, User, ArrowRight, Eye, EyeOff, MailCheck, RotateCw } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { Button } from '@/components/ui/button/Button';
+import { GoogleButton, type GoogleAuthPayload } from '@/components/ui/googleButton/GoogleButton';
 import { Input } from '@/components/ui/input/Input';
 import { useToast } from '@/components/ui/toast/ToastContext';
 import { apiFetch } from '@/utils/api';
+import { auth } from '@/utils/auth';
 import { type AuthResponse } from '@/utils/types';
 
 import styles from './Register.module.css';
@@ -38,6 +41,7 @@ export default function RegisterComponent() {
   const [isResending, setIsResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
 
+  const router = useRouter();
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -55,6 +59,30 @@ export default function RegisterComponent() {
     handleSubmit,
     formState: { errors },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
+
+  const handleGoogleSuccess = async (payload: GoogleAuthPayload) => {
+    setIsLoading(true);
+    try {
+      const res = await apiFetch<AuthResponse>('/auth/google', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+
+      auth.setToken(res.access_token);
+      if (res.refresh_token) {
+        auth.setRefreshToken(res.refresh_token);
+      }
+      auth.setUser(res.user);
+
+      showToast(`Welcome to TaskFlow, ${res.user.name?.split(' ')[0]}!`, 'success');
+      router.push('/dashboard');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Google sign-up failed';
+      showToast(message, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
@@ -146,6 +174,20 @@ export default function RegisterComponent() {
 
   return (
     <AuthLayout title="Create account" subtitle="Join TaskFlow and start managing your work.">
+      <div style={{ marginBottom: '1rem' }}>
+        <GoogleButton
+          onSuccess={handleGoogleSuccess}
+          onError={(msg) => showToast(msg, 'error')}
+          text="Continue with Google"
+          isLoading={isLoading}
+        />
+        <div className={styles.dividerRow}>
+          <div className={styles.dividerLine} />
+          <span>or sign up with email</span>
+          <div className={styles.dividerLine} />
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <Input
           label="Full name"

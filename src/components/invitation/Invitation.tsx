@@ -18,6 +18,7 @@ import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
 import { AuthLayout } from '@/components/auth/AuthLayout';
+import { GoogleButton, type GoogleAuthPayload } from '@/components/ui/googleButton/GoogleButton';
 import { Input } from '@/components/ui/input/Input';
 import { useToast } from '@/components/ui/toast/ToastContext';
 import { apiFetch } from '@/utils/api';
@@ -78,6 +79,46 @@ export default function InvitationComponent() {
 
     fetchInvitation();
   }, [token]);
+
+  const handleGoogleAccept = async (payload: GoogleAuthPayload) => {
+    if (!token) return;
+    setActionLoading(true);
+    setError(null);
+    try {
+      const res = await apiFetch<{
+        message: string;
+        access_token?: string;
+        refresh_token?: string;
+        user?: UserType;
+        project_id: string;
+      }>(`/invitations/${token}/accept-google`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+
+      if (res.access_token && res.user) {
+        auth.setToken(res.access_token);
+        if (res.refresh_token) {
+          auth.setRefreshToken(res.refresh_token);
+        }
+        auth.setUser(res.user);
+      }
+
+      setInvitation((prev) => (prev ? { ...prev, status: 'accepted' } : null));
+      showToast(res.message || 'Invitation accepted with Google!', 'success');
+
+      setTimeout(() => {
+        router.push(`/projects/${res.project_id}`);
+      }, 1500);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : 'Failed to accept invitation with Google.';
+      setError(message);
+      showToast(message, 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const handleAccept = async () => {
     if (!invitation) return;
@@ -169,8 +210,8 @@ export default function InvitationComponent() {
         title="Loading Invitation"
         subtitle="Please wait while we fetch invitation details..."
       >
-        <div className="flex items-center justify-center py-12">
-          <Loader2 size={32} className="animate-spin text-indigo-500" />
+        <div className={styles.loaderWrap}>
+          <Loader2 size={32} className={styles.spinIcon} />
         </div>
       </AuthLayout>
     );
@@ -302,14 +343,28 @@ export default function InvitationComponent() {
         )}
 
         {invitation?.status === 'pending' && !isExpired && (
-          <>
+          <div className={styles.pendingWrapper}>
+            <div className={styles.googleSection}>
+              <GoogleButton
+                onSuccess={handleGoogleAccept}
+                onError={(msg) => showToast(msg, 'error')}
+                text="Continue with Google to Accept"
+                isLoading={actionLoading}
+              />
+              <div className={styles.dividerRow}>
+                <div className={styles.dividerLine} />
+                <span>or set up account manually</span>
+                <div className={styles.dividerLine} />
+              </div>
+            </div>
+
             {!invitation.user_exists ? (
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   handleAccept();
                 }}
-                className="w-full"
+                className={styles.fullWidth}
               >
                 <Input
                   label="Email address"
@@ -363,7 +418,7 @@ export default function InvitationComponent() {
                   </button>
                   <button type="submit" disabled={actionLoading} className={styles.btnPrimary}>
                     {actionLoading ? (
-                      <Loader2 size={16} className="animate-spin" />
+                      <Loader2 size={16} className={styles.spinIcon} />
                     ) : (
                       <>
                         Accept &amp; Join <ArrowRight size={16} />
@@ -373,9 +428,9 @@ export default function InvitationComponent() {
                 </div>
               </form>
             ) : (
-              <div className="w-full">
+              <div className={styles.fullWidth}>
                 {!isMatchingUser ? (
-                  <div className="text-center space-y-4">
+                  <div className={styles.centerBox}>
                     <div className={`${styles.statusBox} ${styles.statusError}`}>
                       An account already exists for <strong>{invitation.email}</strong>. Please sign
                       in to accept.
@@ -405,7 +460,7 @@ export default function InvitationComponent() {
                       className={styles.btnPrimary}
                     >
                       {actionLoading ? (
-                        <Loader2 size={16} className="animate-spin" />
+                        <Loader2 size={16} className={styles.spinIcon} />
                       ) : (
                         'Accept Invitation'
                       )}
@@ -414,7 +469,7 @@ export default function InvitationComponent() {
                 )}
               </div>
             )}
-          </>
+          </div>
         )}
 
         <p className={styles.switchText}>

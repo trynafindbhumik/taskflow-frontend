@@ -83,6 +83,24 @@
   text-decoration: underline;
 }
 
+.dividerRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+  color: var(--muted-foreground);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
 .successContainer {
   display: flex;
   flex-direction: column;
