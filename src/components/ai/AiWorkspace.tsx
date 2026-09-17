@@ -1,6 +1,13 @@
 'use client';
 
-import { FileText, ListTodo, BarChart2, AlertTriangle, UserCheck } from 'lucide-react';
+import {
+  FileText,
+  ListTodo,
+  BarChart2,
+  AlertTriangle,
+  UserCheck,
+  MessageSquare,
+} from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 
 import { useToast } from '@/components/ui/toast/ToastContext';
@@ -46,12 +53,20 @@ export const AiWorkspace: React.FC<AiWorkspaceProps> = ({ initialSessionId }) =>
     handleShareSession,
   } = useAiSession({ initialSessionId });
 
+  const [mobileView, setMobileView] = useState<'chat' | 'artifact'>('chat');
   const [userProjects, setUserProjects] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedProject, setSelectedProject] = useState<{ id: string; name: string } | null>(null);
   const [showProjectDropdown, setShowProjectDropdown] = useState(false);
   const [reviewComments, setReviewComments] = useState<
     Array<{ id: string; taskTitle: string; text: string; selectedText?: string }>
   >([]);
+
+  // Automatically switch mobile view to artifact when an implementation proposal is pending review
+  useEffect(() => {
+    if (activeProposal && activeProposal.status === 'pending') {
+      // Optional smooth auto-switch or badge
+    }
+  }, [activeProposal]);
 
   const handleAddReviewComment = (
     taskTitle: string,
@@ -91,6 +106,7 @@ export const AiWorkspace: React.FC<AiWorkspaceProps> = ({ initialSessionId }) =>
     const promptMessage = `Review Feedback for Implementation Plan:\n${formattedNotes}\n\nPlease update the implementation plan with these targeted modifications.`;
     handleSendMessage(promptMessage);
     setReviewComments([]);
+    setMobileView('chat');
     showToast('Plan review submitted to TaskFlow Assistant for refinement!', 'success');
   };
 
@@ -118,6 +134,34 @@ export const AiWorkspace: React.FC<AiWorkspaceProps> = ({ initialSessionId }) =>
 
   return (
     <div className={styles.container}>
+      {/* Mobile Top View Switcher */}
+      <div className={styles.mobileNavToggleBar}>
+        <button
+          type="button"
+          className={`${styles.mobileTabBtn} ${
+            mobileView === 'chat' ? styles.mobileTabBtnActive : ''
+          }`}
+          onClick={() => setMobileView('chat')}
+        >
+          <MessageSquare size={16} />
+          <span>Chat Feed</span>
+        </button>
+
+        <button
+          type="button"
+          className={`${styles.mobileTabBtn} ${
+            mobileView === 'artifact' ? styles.mobileTabBtnActive : ''
+          }`}
+          onClick={() => setMobileView('artifact')}
+        >
+          <FileText size={16} />
+          <span>Artifact View</span>
+          {activeProposal && activeProposal.status === 'pending' && (
+            <span className={styles.mobileNotificationBadge}>!</span>
+          )}
+        </button>
+      </div>
+
       <ChatHistoryDrawer
         isOpen={mounted && showHistory}
         onClose={() => setShowHistory(false)}
@@ -128,6 +172,7 @@ export const AiWorkspace: React.FC<AiWorkspaceProps> = ({ initialSessionId }) =>
       />
 
       <ChatStream
+        className={mobileView !== 'chat' ? styles.hiddenOnMobile : ''}
         messages={messages}
         inputMessage={input}
         loading={isLoading}
@@ -166,7 +211,11 @@ export const AiWorkspace: React.FC<AiWorkspaceProps> = ({ initialSessionId }) =>
         chatFeedEndRef={chatFeedEndRef}
       />
 
-      <div className={styles.artifactColumn}>
+      <div
+        className={`${styles.artifactColumn} ${
+          mobileView !== 'artifact' ? styles.hiddenOnMobile : ''
+        }`}
+      >
         <div className={styles.artifactHeader}>
           <div className={styles.artifactTitleGroup}>
             <div className={styles.artifactFileBadge}>

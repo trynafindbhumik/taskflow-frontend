@@ -1,10 +1,11 @@
 'use client';
 
-import { Loader2, Mail, UserMinus } from 'lucide-react';
-import React from 'react';
+import { Loader2, Mail, Search, UserMinus, UserPlus, X } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import { Button } from '@/components/ui/button/Button';
 import { SideSheet } from '@/components/ui/sideSheet/SideSheet';
+import { apiFetch } from '@/utils/api';
 import type { User } from '@/utils/types';
 
 import styles from '../ProjectDetails.module.css';
@@ -13,7 +14,7 @@ interface ProjectMembersSheetProps {
   isOpen: boolean;
   onClose: () => void;
   members: User[];
-  allUsers: User[];
+  allUsers?: User[];
   currentUser: User | null;
   ownerId?: string;
   removingId: string | null;
@@ -31,7 +32,6 @@ export const ProjectMembersSheet: React.FC<ProjectMembersSheetProps> = ({
   isOpen,
   onClose,
   members,
-  allUsers,
   currentUser,
   ownerId,
   removingId,
@@ -44,7 +44,43 @@ export const ProjectMembersSheet: React.FC<ProjectMembersSheetProps> = ({
   onLeaveProject,
   onSendInvites,
 }) => {
-  const nonMembers = (allUsers || []).filter(
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const handleSearch = useCallback(async (query: string) => {
+    const trimmed = query.trim();
+    if (!trimmed) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+    setIsSearching(true);
+    try {
+      const results = (await apiFetch(`/users?q=${encodeURIComponent(trimmed)}`)) as User[];
+      setSearchResults(Array.isArray(results) ? results : []);
+    } catch {
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleSearch(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery, handleSearch]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSearchQuery('');
+      setSearchResults([]);
+    }
+  }, [isOpen]);
+
+  const nonMembers = searchResults.filter(
     (u) => u && u.id && !(members || []).some((m) => m && m.id === u.id)
   );
 
@@ -66,11 +102,11 @@ export const ProjectMembersSheet: React.FC<ProjectMembersSheetProps> = ({
             <div key={m.id} className={styles.memberRow}>
               <div className={styles.memberAvatar}>
                 {m.name
-                  .split(' ')
+                  ?.split(' ')
                   .map((n) => n[0])
                   .join('')
                   .slice(0, 2)
-                  .toUpperCase()}
+                  .toUpperCase() || 'U'}
               </div>
               <div className={styles.memberInfo}>
                 <span className={styles.memberName}>{m.name}</span>
@@ -106,40 +142,84 @@ export const ProjectMembersSheet: React.FC<ProjectMembersSheetProps> = ({
           );
         })}
 
-        {nonMembers.length > 0 && (
-          <>
-            <p className={`${styles.membersSectionLabel} ${styles.membersSectionLabelSep}`}>
-              Quick Add Existing Users
-            </p>
-            {nonMembers.map((u) => (
-              <div key={u.id} className={styles.memberRow}>
-                <div className={`${styles.memberAvatar} ${styles.memberAvatarMuted}`}>
-                  {u.name
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')
-                    .slice(0, 2)
-                    .toUpperCase()}
+        <div className={styles.addMemberSection}>
+          <p className={`${styles.membersSectionLabel} ${styles.membersSectionLabelSep}`}>
+            Add Existing Users
+          </p>
+          <div className={styles.memberSearchInputWrap}>
+            <Search size={18} className={styles.memberSearchIcon} />
+            <input
+              type="text"
+              className={styles.memberSearchInput}
+              placeholder="Search users by name or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className={styles.clearSearchBtn}
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear search"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          {isSearching && (
+            <div className={styles.memberSearchStateHint}>
+              <Loader2 size={14} className={styles.spinner} /> Searching platform users...
+            </div>
+          )}
+
+          {!isSearching && searchQuery.trim().length > 0 && nonMembers.length === 0 && (
+            <div className={styles.memberSearchStateHint}>
+              No available users found matching &quot;{searchQuery.trim()}&quot;.
+            </div>
+          )}
+
+          {!isSearching && searchQuery.trim().length === 0 && (
+            <div className={styles.memberSearchStateHint}>
+              Type a name or email to search existing platform users.
+            </div>
+          )}
+
+          {!isSearching && nonMembers.length > 0 && (
+            <div className={styles.searchResultsList}>
+              {nonMembers.map((u) => (
+                <div key={u.id} className={styles.memberRow}>
+                  <div className={`${styles.memberAvatar} ${styles.memberAvatarMuted}`}>
+                    {u.name
+                      ?.split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .slice(0, 2)
+                      .toUpperCase() || 'U'}
+                  </div>
+                  <div className={styles.memberInfo}>
+                    <span className={styles.memberName}>{u.name}</span>
+                    <span className={styles.memberEmail}>{u.email}</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onAddMember(u.id)}
+                    isLoading={addingId === u.id}
+                    leftIcon={<UserPlus size={14} />}
+                  >
+                    Add
+                  </Button>
                 </div>
-                <div className={styles.memberInfo}>
-                  <span className={styles.memberName}>{u.name}</span>
-                  <span className={styles.memberEmail}>{u.email}</span>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onAddMember(u.id)}
-                  isLoading={addingId === u.id}
-                >
-                  Add
-                </Button>
-              </div>
-            ))}
-          </>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className={styles.inviteSection}>
-          <p className={styles.membersSectionLabel}>Invite New People</p>
+          <p className={`${styles.membersSectionLabel} ${styles.membersSectionLabelSep}`}>
+            Invite New People
+          </p>
           <p className={styles.inviteHint}>
             Enter email addresses (separated by comma or space). They will be invited to join this
             project.
@@ -166,13 +246,6 @@ export const ProjectMembersSheet: React.FC<ProjectMembersSheetProps> = ({
             Send Invites
           </Button>
         </div>
-
-        {nonMembers.length === 0 && inviteEmails === '' && (
-          <p className={styles.emptyMembersHint}>
-            All available users are already members. Use the invite box above to bring in new
-            people.
-          </p>
-        )}
       </div>
     </SideSheet>
   );

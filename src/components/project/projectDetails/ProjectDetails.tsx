@@ -30,7 +30,6 @@ export default function ProjectDetailPage() {
     tasks,
     setTasks,
     members,
-    allUsers,
     currentUser,
     isLoading,
     isNotFound,
@@ -275,7 +274,6 @@ export default function ProjectDetailPage() {
         isOpen={membersOpen}
         onClose={() => setMembersOpen(false)}
         members={members}
-        allUsers={allUsers}
         currentUser={currentUser}
         ownerId={ownerId}
         removingId={removingId}

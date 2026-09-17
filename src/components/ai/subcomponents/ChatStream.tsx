@@ -35,6 +35,7 @@ export interface FileAttachmentPayload {
 }
 
 interface ChatStreamProps {
+  className?: string;
   messages: LocalChatMessage[];
   inputMessage: string;
   loading: boolean;
@@ -53,6 +54,7 @@ interface ChatStreamProps {
 }
 
 export const ChatStream: React.FC<ChatStreamProps> = ({
+  className,
   messages,
   inputMessage,
   loading,
@@ -295,7 +297,7 @@ export const ChatStream: React.FC<ChatStreamProps> = ({
   };
 
   return (
-    <div className={styles.chatColumn}>
+    <div className={`${styles.chatColumn} ${className || ''}`}>
       <div className={styles.chatHeader}>
         <div className={styles.agentTitleInfo}>
           <div className={styles.agentIconBadge}>

@@ -15,6 +15,7 @@ import { auth } from '@/utils/auth';
 import type { Project, User, DeadlineTask, DeadlineResponse } from '@/utils/types';
 
 import styles from './Dashboard.module.css';
+import { DashboardSkeleton } from './subcomponents/DashboardSkeleton';
 
 const DEADLINE_PAGE_SIZE = 5;
 
@@ -182,11 +183,7 @@ export default function DashboardPage() {
   };
 
   if (!isReady) {
-    return (
-      <div className={styles.loadingScreen}>
-        <div className={styles.spinner} />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   const firstName = user?.name?.split(' ')[0] ?? 'there';
