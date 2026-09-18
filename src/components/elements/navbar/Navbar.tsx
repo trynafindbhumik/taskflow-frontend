@@ -3,7 +3,6 @@
 import {
   Bell,
   Search,
-  Layout,
   LogOut,
   User,
   ChevronDown,
@@ -201,7 +200,11 @@ export const Navbar: React.FC = () => {
           </button>
 
           <Link href="/dashboard" className={styles.logo}>
-            <Layout size={20} strokeWidth={2.5} />
+            <img
+              src={mounted && theme === 'light' ? '/LogoDark.png' : '/LogoWhite.png'}
+              alt="TaskFlow Logo"
+              style={{ height: '32px', width: 'auto', objectFit: 'contain' }}
+            />
             <span>TaskFlow</span>
           </Link>
 
@@ -343,7 +346,11 @@ export const Navbar: React.FC = () => {
                 className={styles.logo}
                 onClick={() => setMobileNavOpen(false)}
               >
-                <Layout size={18} strokeWidth={2.5} />
+                <img
+                  src={mounted && theme === 'light' ? '/LogoDark.png' : '/LogoWhite.png'}
+                  alt="TaskFlow Logo"
+                  style={{ height: '28px', width: 'auto', objectFit: 'contain' }}
+                />
                 <span>TaskFlow</span>
               </Link>
               <button

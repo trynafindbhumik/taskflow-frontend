@@ -1,6 +1,6 @@
 'use client';
 
-import { Moon, Sun, LayoutDashboard } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 import React from 'react';
 
 import { useTheme } from '@/components/providers/themeProvider/ThemeProvider';
@@ -25,7 +25,11 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
     <div className={styles.container}>
       <div className={styles.leftPane}>
         <div className={styles.logo}>
-          <LayoutDashboard size={22} strokeWidth={2.5} />
+          <img
+            src={mounted && theme === 'light' ? '/LogoDark.png' : '/LogoWhite.png'}
+            alt="TaskFlow Logo"
+            style={{ height: '42px', width: 'auto', objectFit: 'contain' }}
+          />
           <span>TaskFlow</span>
         </div>
 
