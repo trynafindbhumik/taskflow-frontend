@@ -44,7 +44,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs \
  && adduser  --system --uid 1001 nextjs
 
-# Copy the static public assets (includes MSW's mockServiceWorker.js)
+# Copy the static public assets
 COPY --from=builder /app/public ./public
 
 # Standalone output bundles only what the server actually needs —
