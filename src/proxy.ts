@@ -4,13 +4,7 @@ const PUBLIC_ROUTES = ['/login', '/register'];
 
 const PROTECTED_ROUTES = ['/dashboard', '/projects', '/profile', '/setting'];
 
-const SYSTEM_ROUTES = [
-  '/_next',
-  '/favicon.ico',
-  '/robots.txt',
-  '/sitemap.xml',
-  '/mockServiceWorker.js',
-];
+const SYSTEM_ROUTES = ['/_next', '/favicon.ico', '/robots.txt', '/sitemap.xml'];
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
