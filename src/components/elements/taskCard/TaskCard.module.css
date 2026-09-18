@@ -259,6 +259,8 @@
   font-size: 0.6875rem;
   color: var(--muted-foreground);
   font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .dueDateOverdue {
