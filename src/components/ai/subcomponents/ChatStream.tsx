@@ -99,50 +99,103 @@ export const ChatStream: React.FC<ChatStreamProps> = ({
   };
 
   const renderUserContent = (content: string) => {
-    const attachMatch = content.match(/^\[Attached(?: Spec)?: ([^\]]+)\]\s*([\s\S]*)$/);
+    let text = content;
+    let attachmentFilename = null;
+    let projectName = null;
+
+    // Check for attachment prefix
+    const attachMatch = text.match(/^\[Attached(?: Spec)?: ([^\]]+)\]\s*([\s\S]*)$/);
     if (attachMatch) {
-      const filename = attachMatch[1];
-      const restText = attachMatch[2];
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', maxWidth: '100%' }}>
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              backgroundColor: 'rgba(0, 0, 0, 0.22)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              borderRadius: '6px',
-              padding: '0.3rem 0.65rem',
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              alignSelf: 'flex-start',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-              maxWidth: '100%',
-              boxSizing: 'border-box',
-            }}
-          >
-            <FileText size={14} style={{ color: '#ffffff', flexShrink: 0 }} />
-            <span
-              style={{
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: 'inline-block',
-                maxWidth: '100%',
-              }}
-              title={filename}
-            >
-              {filename}
-            </span>
-          </div>
-          {restText ? (
-            <div style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{restText}</div>
-          ) : null}
-        </div>
-      );
+      attachmentFilename = attachMatch[1];
+      text = attachMatch[2];
     }
-    return content;
+
+    // Check for project prefix
+    const projectMatch = text.match(/^\[Project:\s*([^\]]+)\]\s*([\s\S]*)$/);
+    if (projectMatch) {
+      projectName = projectMatch[1];
+      text = projectMatch[2];
+    }
+
+    if (!attachmentFilename && !projectName) {
+      return content;
+    }
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', maxWidth: '100%' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignSelf: 'flex-start' }}>
+          {projectName && (
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                color: 'var(--primary)',
+                borderRadius: '12px',
+                padding: '0.2rem 0.6rem',
+                fontSize: '0.725rem',
+                fontWeight: 700,
+                boxShadow: '0 2px 4px rgba(0,0,0,0.15)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.03em',
+                maxWidth: '100%',
+                boxSizing: 'border-box',
+              }}
+            >
+              <FolderPlus size={12} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+              <span
+                style={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: 'inline-block',
+                  maxWidth: '100%',
+                }}
+                title={projectName}
+              >
+                Project: {projectName}
+              </span>
+            </div>
+          )}
+          {attachmentFilename && (
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                backgroundColor: 'rgba(0, 0, 0, 0.22)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: '6px',
+                padding: '0.3rem 0.65rem',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                maxWidth: '100%',
+                boxSizing: 'border-box',
+              }}
+            >
+              <FileText size={14} style={{ color: '#ffffff', flexShrink: 0 }} />
+              <span
+                style={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: 'inline-block',
+                  maxWidth: '100%',
+                }}
+                title={attachmentFilename}
+              >
+                {attachmentFilename}
+              </span>
+            </div>
+          )}
+        </div>
+        {text ? (
+          <div style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{text}</div>
+        ) : null}
+      </div>
+    );
   };
 
   const renderFormattedText = (text: string) => {
