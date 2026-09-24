@@ -209,12 +209,7 @@ export const ProjectMembersSheet: React.FC<ProjectMembersSheetProps> = ({
                       <span className={styles.memberEmail}>{u.email}</span>
                     </div>
                     {isPending ? (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled
-                        leftIcon={<Check size={14} />}
-                      >
+                      <Button size="sm" variant="outline" disabled leftIcon={<Check size={14} />}>
                         Invited
                       </Button>
                     ) : (

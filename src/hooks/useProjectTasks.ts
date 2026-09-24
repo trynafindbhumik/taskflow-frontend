@@ -292,7 +292,9 @@ export function useProjectTasks(projectId: string) {
 
         const [freshMembersData, freshInvitations] = await Promise.all([
           apiFetch(`/projects/${projectId}/members`) as Promise<ProjectMember[]>,
-          apiFetch(`/projects/${projectId}/invitations`).catch(() => []) as Promise<Array<{ email: string }>>,
+          apiFetch(`/projects/${projectId}/invitations`).catch(() => []) as Promise<
+            Array<{ email: string }>
+          >,
         ]);
 
         setMembers(
@@ -378,7 +380,9 @@ export function useProjectTasks(projectId: string) {
 
       const [freshMembersData, freshInvitations] = await Promise.all([
         apiFetch(`/projects/${projectId}/members`) as Promise<ProjectMember[]>,
-        apiFetch(`/projects/${projectId}/invitations`).catch(() => []) as Promise<Array<{ email: string }>>,
+        apiFetch(`/projects/${projectId}/invitations`).catch(() => []) as Promise<
+          Array<{ email: string }>
+        >,
       ]);
 
       setMembers(
