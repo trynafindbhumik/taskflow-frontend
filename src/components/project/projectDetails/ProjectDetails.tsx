@@ -53,6 +53,7 @@ export default function ProjectDetailPage() {
     inviteEmails,
     setInviteEmails,
     isInviting,
+    pendingInvites,
     newSubtaskTitle,
     setNewSubtaskTitle,
     detailsSubtaskTitle,
@@ -281,6 +282,7 @@ export default function ProjectDetailPage() {
         inviteEmails={inviteEmails}
         setInviteEmails={setInviteEmails}
         isInviting={isInviting}
+        pendingInvites={pendingInvites}
         onAddMember={handleAddMember}
         onRemoveMember={handleRemoveMember}
         onLeaveProject={handleLeaveProject}
