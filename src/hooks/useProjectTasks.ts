@@ -46,6 +46,7 @@ export function useProjectTasks(projectId: string) {
   const [addingId, setAddingId] = useState<string | null>(null);
   const [inviteEmails, setInviteEmails] = useState('');
   const [isInviting, setIsInviting] = useState(false);
+  const [pendingInvites, setPendingInvites] = useState<string[]>([]);
 
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [detailsSubtaskTitle, setDetailsSubtaskTitle] = useState('');
@@ -61,15 +62,19 @@ export function useProjectTasks(projectId: string) {
 
     const load = async () => {
       try {
-        const [projectData, tasksData, membersData] = (await Promise.all([
+        const [projectData, tasksData, membersData, invitationsData] = (await Promise.all([
           apiFetch(`/projects/${projectId}`),
           apiFetch(`/projects/${projectId}/tasks`),
           apiFetch(`/projects/${projectId}/members`),
-        ])) as [Project, Task[], ProjectMember[]];
+          apiFetch(`/projects/${projectId}/invitations`).catch(() => []),
+        ])) as [Project, Task[], ProjectMember[], Array<{ email: string }>];
 
         setProject(projectData);
         setTasks(tasksData);
         setMembers(membersData.map((m) => m.user));
+        if (Array.isArray(invitationsData)) {
+          setPendingInvites(invitationsData.map((inv) => inv.email.toLowerCase()));
+        }
       } catch {
         setIsNotFound(true);
       } finally {
@@ -272,22 +277,34 @@ export function useProjectTasks(projectId: string) {
   }, [deleteTaskId, showToast]);
 
   const handleAddMember = useCallback(
-    async (userId: string) => {
+    async (userId: string, targetEmail?: string) => {
       if ((members || []).some((m) => m && m.id === userId)) return;
+      if (targetEmail) {
+        const lower = targetEmail.toLowerCase();
+        setPendingInvites((prev) => (prev.includes(lower) ? prev : [...prev, lower]));
+      }
       setAddingId(userId);
       try {
-        await apiFetch(`/projects/${projectId}/members`, {
+        const res = await apiFetch<{ message?: string }>(`/projects/${projectId}/members`, {
           method: 'POST',
           body: JSON.stringify({ user_id: userId }),
         });
 
-        const freshMembersData = (await apiFetch(
-          `/projects/${projectId}/members`
-        )) as ProjectMember[];
+        const [freshMembersData, freshInvitations] = await Promise.all([
+          apiFetch(`/projects/${projectId}/members`) as Promise<ProjectMember[]>,
+          apiFetch(`/projects/${projectId}/invitations`).catch(() => []) as Promise<
+            Array<{ email: string }>
+          >,
+        ]);
+
         setMembers(
           freshMembersData.map((m) => m.user || (m as unknown as User)).filter((u) => u && u.id)
         );
-        showToast('Member added', 'success');
+        if (Array.isArray(freshInvitations)) {
+          setPendingInvites(freshInvitations.map((inv) => inv.email.toLowerCase()));
+        }
+
+        showToast(res.message || 'Invitation sent successfully', 'success');
       } catch (err: unknown) {
         showToast(err instanceof Error ? err.message : 'Failed to add member', 'error');
       } finally {
@@ -353,6 +370,7 @@ export function useProjectTasks(projectId: string) {
       return;
     }
 
+    setPendingInvites((prev) => Array.from(new Set([...prev, ...emails])));
     setIsInviting(true);
     try {
       const res = await apiFetch<{ message?: string }>(`/projects/${projectId}/members`, {
@@ -360,12 +378,20 @@ export function useProjectTasks(projectId: string) {
         body: JSON.stringify({ emails }),
       });
 
-      const freshMembersData = (await apiFetch(
-        `/projects/${projectId}/members`
-      )) as ProjectMember[];
+      const [freshMembersData, freshInvitations] = await Promise.all([
+        apiFetch(`/projects/${projectId}/members`) as Promise<ProjectMember[]>,
+        apiFetch(`/projects/${projectId}/invitations`).catch(() => []) as Promise<
+          Array<{ email: string }>
+        >,
+      ]);
+
       setMembers(
         freshMembersData.map((m) => m.user || (m as unknown as User)).filter((u) => u && u.id)
       );
+      if (Array.isArray(freshInvitations)) {
+        setPendingInvites(freshInvitations.map((inv) => inv.email.toLowerCase()));
+      }
+
       setInviteEmails('');
       showToast(
         res.message || `Invitation emails sent successfully to ${emails.length} recipient(s).`,
@@ -406,6 +432,7 @@ export function useProjectTasks(projectId: string) {
     inviteEmails,
     setInviteEmails,
     isInviting,
+    pendingInvites,
     newSubtaskTitle,
     setNewSubtaskTitle,
     detailsSubtaskTitle,

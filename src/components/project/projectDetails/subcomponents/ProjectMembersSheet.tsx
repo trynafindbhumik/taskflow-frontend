@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, Mail, Search, UserMinus, UserPlus, X } from 'lucide-react';
+import { Check, Loader2, Mail, Search, UserMinus, UserPlus, X } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
 
 import { Button } from '@/components/ui/button/Button';
@@ -22,7 +22,8 @@ interface ProjectMembersSheetProps {
   inviteEmails: string;
   setInviteEmails: (val: string) => void;
   isInviting: boolean;
-  onAddMember: (userId: string) => void;
+  pendingInvites?: string[];
+  onAddMember: (userId: string, email?: string) => void;
   onRemoveMember: (userId: string) => void;
   onLeaveProject: (userId: string) => void;
   onSendInvites: () => void;
@@ -39,6 +40,7 @@ export const ProjectMembersSheet: React.FC<ProjectMembersSheetProps> = ({
   inviteEmails,
   setInviteEmails,
   isInviting,
+  pendingInvites = [],
   onAddMember,
   onRemoveMember,
   onLeaveProject,
@@ -187,31 +189,44 @@ export const ProjectMembersSheet: React.FC<ProjectMembersSheetProps> = ({
 
           {!isSearching && nonMembers.length > 0 && (
             <div className={styles.searchResultsList}>
-              {nonMembers.map((u) => (
-                <div key={u.id} className={styles.memberRow}>
-                  <div className={`${styles.memberAvatar} ${styles.memberAvatarMuted}`}>
-                    {u.name
-                      ?.split(' ')
-                      .map((n) => n[0])
-                      .join('')
-                      .slice(0, 2)
-                      .toUpperCase() || 'U'}
+              {nonMembers.map((u) => {
+                const isPending = pendingInvites.some(
+                  (invEmail) => invEmail.toLowerCase() === u.email?.toLowerCase()
+                );
+
+                return (
+                  <div key={u.id} className={styles.memberRow}>
+                    <div className={`${styles.memberAvatar} ${styles.memberAvatarMuted}`}>
+                      {u.name
+                        ?.split(' ')
+                        .map((n) => n[0])
+                        .join('')
+                        .slice(0, 2)
+                        .toUpperCase() || 'U'}
+                    </div>
+                    <div className={styles.memberInfo}>
+                      <span className={styles.memberName}>{u.name}</span>
+                      <span className={styles.memberEmail}>{u.email}</span>
+                    </div>
+                    {isPending ? (
+                      <Button size="sm" variant="outline" disabled leftIcon={<Check size={14} />}>
+                        Invited
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onAddMember(u.id, u.email)}
+                        isLoading={addingId === u.id}
+                        disabled={addingId !== null}
+                        leftIcon={<UserPlus size={14} />}
+                      >
+                        Add
+                      </Button>
+                    )}
                   </div>
-                  <div className={styles.memberInfo}>
-                    <span className={styles.memberName}>{u.name}</span>
-                    <span className={styles.memberEmail}>{u.email}</span>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onAddMember(u.id)}
-                    isLoading={addingId === u.id}
-                    leftIcon={<UserPlus size={14} />}
-                  >
-                    Add
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
